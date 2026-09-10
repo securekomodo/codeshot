@@ -1,0 +1,161 @@
+package layout
+
+import (
+	"math"
+	"reflect"
+	"strings"
+	"testing"
+
+	"codeshot/internal/fonts"
+	"codeshot/internal/highlight"
+	"codeshot/internal/preset"
+	"codeshot/internal/settings"
+	"codeshot/internal/theme"
+)
+
+func TestPrepareText(t *testing.T) {
+	got := PrepareText("a\tb\r\n\t\tc\n\n")
+	want := []string{"a b", "    c", ""}
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("got %q want %q", got, want)
+	}
+	if got := PrepareText(""); len(got) != 1 || got[0] != "" {
+		t.Errorf("empty input -> %q", got)
+	}
+}
+
+func TestWrapLine(t *testing.T) {
+	l := highlight.Line{{Text: "hello ", Color: "#111111"}, {Text: "world foo "}, {Text: "barbazqux"}}
+	rows := wrapLine(l, 10)
+	texts := make([]string, len(rows))
+	for i, r := range rows {
+		texts[i] = r.Text()
+	}
+	want := []string{"hello ", "world foo ", "barbazqux"}
+	if !reflect.DeepEqual(texts, want) {
+		t.Errorf("rows = %q want %q", texts, want)
+	}
+	if rows[0][0].Color != "#111111" || len(rows[1]) != 1 {
+		t.Errorf("spans not preserved: %+v", rows)
+	}
+	long := highlight.Line{{Text: strings.Repeat("x", 25)}}
+	if r := wrapLine(long, 10); len(r) != 3 || r[2].Text() != "xxxxx" {
+		t.Errorf("hard break: %+v", r)
+	}
+	all := wrapAll([]highlight.Line{l, {{Text: "short"}}}, 10)
+	if len(all) != 4 || all[0].number != 1 || all[1].number != 0 || all[3].number != 2 {
+		t.Errorf("wrapAll numbering: %+v", all)
+	}
+}
+
+func fixture(t *testing.T, key string, lines ...string) (Input, settings.Settings) {
+	t.Helper()
+	p, _ := preset.Get(key)
+	s := settings.Defaults(p)
+	code, err := fonts.Load("jetbrains")
+	if err != nil {
+		t.Fatal(err)
+	}
+	inter, _ := fonts.Inter()
+	th, _ := theme.Get(s.Theme)
+	bd, _ := theme.GetBackdrop(s.Backdrop)
+	var hl []highlight.Line
+	for _, l := range lines {
+		hl = append(hl, highlight.Line{{Text: l}})
+	}
+	return Input{Settings: s, Theme: th, Backdrop: bd, Code: code, Title: inter, Lines: hl}, s
+}
+
+func TestComputeCode(t *testing.T) {
+	in, _ := fixture(t, "code", "const a = 1;", "", "x")
+	L, err := Compute(in)
+	if err != nil {
+		t.Fatal(err)
+	}
+	cell := in.Code.Advance('0', 15)
+	if L.FontSize != 15 || L.LineHeight != 24 {
+		t.Errorf("font %v lh %v", L.FontSize, L.LineHeight)
+	}
+	if L.Chrome == nil || L.Chrome.Bar.H != BarHeight || L.Chrome.Badge != nil {
+		t.Fatalf("chrome = %+v", L.Chrome)
+	}
+	// Short code: the card is widened so the centered title has room.
+	titleW := in.Title.Width("snippet.js", TitleSize)
+	if wantW := 2*TitleInset + titleW; L.Card.W < wantW || L.Card.W > wantW+1 || L.Chrome.Title.Text != "snippet.js" {
+		t.Errorf("card width %v want ~%v, title %q", L.Card.W, wantW, L.Chrome.Title.Text)
+	}
+	// Long code: the card fits the content.
+	long := strings.Repeat("x", 60)
+	in.Lines = []highlight.Line{{{Text: long}}}
+	if L2, _ := Compute(in); L2.Card.W != math.Ceil(2*CodePadX+cell+GutterPad+60*cell) {
+		t.Errorf("long card width %v", L2.Card.W)
+	}
+	if L.Card.H != BarHeight+CodePadTop+3*24+CodePadBottom {
+		t.Errorf("card height %v", L.Card.H)
+	}
+	if L.W != L.Card.W+96 || L.H != L.Card.H+96 || L.Card.X != 48 {
+		t.Errorf("image %vx%v card %+v", L.W, L.H, L.Card)
+	}
+	if len(L.Gutter) != 3 || L.Gutter[2].Text != "3" || L.Gutter[0].Anchor != "end" {
+		t.Errorf("gutter = %+v", L.Gutter)
+	}
+	if L.Rows[1].Y-L.Rows[0].Y != 24 || L.Rows[0].X != 48+CodePadX+cell+GutterPad {
+		t.Errorf("rows = %+v", L.Rows[:2])
+	}
+	if L.Chrome.Dots[1].CX != 48+16+6+20 || L.Chrome.Title.Text != "snippet.js" || L.Chrome.Title.Anchor != "middle" {
+		t.Errorf("chrome = %+v", L.Chrome)
+	}
+	if !L.ShowBackground || !L.Backdrop.Gradient() || L.Window.Hex != "#282a36" {
+		t.Errorf("backdrop/window: %+v %+v", L.Backdrop, L.Window)
+	}
+}
+
+func TestComputeBadgeWidthMilestone(t *testing.T) {
+	in, _ := fixture(t, "api", `{"a": 1}`)
+	L, _ := Compute(in)
+	if L.Chrome.Badge == nil || L.Chrome.Bar.H != BarWithBadge || len(L.Chrome.Badge.Texts) != 2 ||
+		L.Chrome.Badge.Texts[1].Text != "200 OK" || L.Chrome.Badge.Texts[0].Color.Hex != highlight.Teal {
+		t.Errorf("api badge = %+v", L.Chrome.Badge)
+	}
+	if right := L.Chrome.Badge.Box.X + L.Chrome.Badge.Box.W; right != L.Card.X+L.Card.W-BarPadX {
+		t.Errorf("badge right edge %v", right)
+	}
+
+	in, s := fixture(t, "code", "short")
+	s.Width = 768
+	in.Settings = s
+	L, _ = Compute(in)
+	if L.Card.W != 768 || L.W != 768+96 {
+		t.Errorf("fixed width: %v", L.Card.W)
+	}
+	s.Width, s.Wrap = 0, 3
+	in.Settings = s
+	in.Lines = []highlight.Line{{{Text: "ab cd ef"}}}
+	L, _ = Compute(in)
+	if len(L.Rows) != 3 || len(L.Gutter) != 1 {
+		t.Errorf("wrap rows=%d gutter=%d", len(L.Rows), len(L.Gutter))
+	}
+
+	in, _ = fixture(t, "dev-milestone", "🎉 done")
+	L, _ = Compute(in)
+	if L.Chrome != nil || L.FontSize != 26 || L.LineHeight != 39 || !L.Center || L.Card.X != 64 || len(L.Gutter) != 0 {
+		t.Errorf("milestone: %+v", L)
+	}
+	if L.Rows[0].X != L.Card.X+L.Card.W/2 {
+		t.Errorf("milestone row not centered")
+	}
+
+	in, s = fixture(t, "regex", "a|b")
+	s.Title = strings.Repeat("long-title-", 20)
+	in.Settings = s
+	L, _ = Compute(in)
+	if !strings.HasSuffix(L.Chrome.Title.Text, "…") || L.Chrome.Badge.Texts[0].Text != "/gi" {
+		t.Errorf("title %q badge %+v", L.Chrome.Title.Text, L.Chrome.Badge.Texts)
+	}
+	s.ShowChrome = false
+	in.Settings = s
+	L, _ = Compute(in)
+	if L.Chrome != nil || L.Card.H != CodePadTop+24+CodePadBottom {
+		t.Errorf("no chrome: %+v", L.Card)
+	}
+}

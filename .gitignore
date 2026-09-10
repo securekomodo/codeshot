@@ -1,0 +1,16 @@
+# build output
+/codeshot
+/codeshot.exe
+/dist/
+/out/
+
+# go tooling
+*.test
+*.prof
+coverage.out
+
+# editors and OS
+.DS_Store
+.idea/
+.vscode/
+*.swp

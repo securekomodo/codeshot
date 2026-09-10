@@ -1,0 +1,10 @@
+CREATE TABLE snippets (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  owner_id    UUID NOT NULL REFERENCES users (id),
+  language    VARCHAR(32) NOT NULL,
+  body        TEXT NOT NULL,
+  is_public   BOOLEAN NOT NULL DEFAULT false,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX idx_snippets_owner ON snippets (owner_id);

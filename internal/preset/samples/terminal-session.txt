@@ -1,0 +1,8 @@
+$ git clone https://github.com/you/codeshot.git
+Cloning into 'codeshot'...
+$ cd codeshot && npm install
+added 312 packages in 4s
+$ npm run dev
+  ▲ Next.js 16.2.9
+  - Local: http://localhost:3000
+✓ Ready in 1.2s

@@ -1,0 +1,174 @@
+// Package settings is the studio's option set: defaults, per-preset
+// overrides, validation, and the output-name slug.
+package settings
+
+import (
+	"fmt"
+	"regexp"
+	"strings"
+
+	"codeshot/internal/fonts"
+	"codeshot/internal/preset"
+	"codeshot/internal/theme"
+)
+
+// Settings holds every rendering option, plus the CLI-only Scale, Wrap
+// and Width.
+type Settings struct {
+	Preset   preset.Preset
+	Theme    string
+	Backdrop string
+	Font     string // bundled font id or a .ttf/.otf path
+	Language string
+	Title    string
+	Padding  int // px around the card, 0..160
+	FontSize int // px, 11..28
+
+	ShowBackground  bool
+	ShowChrome      bool
+	ShowLineNumbers bool
+	Shadow          bool
+
+	Prompt    string // terminal renderers: replaces the prompt character ("" keeps the original)
+	Method    string // api preset badge
+	Status    string // api preset badge
+	ShowBadge bool
+	Flags     string // regex preset badge
+
+	Scale int // PNG pixel ratio
+	Wrap  int // soft-wrap at this many columns; 0 = off
+	Width int // fixed card width in px; 0 = fit content
+}
+
+// Allowed values for the badge and prompt options.
+var (
+	Methods  = []string{"GET", "POST", "PUT", "PATCH", "DELETE"}
+	Statuses = []string{"200", "201", "204", "400", "401", "403", "404", "422", "500"}
+	Prompts  = []string{"$", "❯", "#", "~", ""}
+)
+
+// Defaults returns the studio's initial state for a preset.
+func Defaults(p preset.Preset) Settings {
+	s := Settings{
+		Preset:          p,
+		Theme:           theme.Default,
+		Backdrop:        theme.DefaultBackdrop,
+		Font:            fonts.Default,
+		Language:        p.Language,
+		Title:           p.Title,
+		Padding:         48,
+		FontSize:        15,
+		ShowBackground:  true,
+		ShowChrome:      p.Render != preset.Milestone,
+		ShowLineNumbers: p.SupportsLineNumbers(),
+		Shadow:          true,
+		Prompt:          "$",
+		Method:          "GET",
+		Status:          "200",
+		ShowBadge:       true,
+		Scale:           2,
+	}
+	if s.Language == "" {
+		s.Language = "javascript"
+	}
+	if p.Render == preset.Milestone {
+		s.Padding = 64
+	}
+	if p.Prompt != "" {
+		s.Prompt = p.Prompt
+	}
+	if p.Key == "regex" {
+		s.Flags = "gi"
+	}
+	return s
+}
+
+// Validate checks every value against its range or registry.
+// The font is validated when it is loaded.
+func (s *Settings) Validate() error {
+	if _, ok := theme.Get(s.Theme); !ok {
+		return fmt.Errorf("unknown theme %q (one of %s)", s.Theme, strings.Join(theme.IDs(), ", "))
+	}
+	if _, ok := theme.GetBackdrop(s.Backdrop); !ok {
+		return fmt.Errorf("unknown backdrop %q (one of %s)", s.Backdrop, strings.Join(theme.BackdropIDs(), ", "))
+	}
+	if s.Padding < 0 || s.Padding > 160 {
+		return fmt.Errorf("padding %d out of range 0..160", s.Padding)
+	}
+	if s.FontSize < 11 || s.FontSize > 28 {
+		return fmt.Errorf("font size %d out of range 11..28", s.FontSize)
+	}
+	if s.Scale < 1 || s.Scale > 8 {
+		return fmt.Errorf("scale %d out of range 1..8", s.Scale)
+	}
+	if s.Wrap < 0 || s.Width < 0 {
+		return fmt.Errorf("wrap and width must not be negative")
+	}
+	if s.Wrap > 0 && s.Width > 0 {
+		return fmt.Errorf("use either --wrap or --width, not both")
+	}
+	if !contains(Methods, s.Method) {
+		return fmt.Errorf("unknown method %q (one of %s)", s.Method, strings.Join(Methods, ", "))
+	}
+	if !contains(Statuses, s.Status) {
+		return fmt.Errorf("unknown status %q (one of %s)", s.Status, strings.Join(Statuses, ", "))
+	}
+	return nil
+}
+
+// DisplayTitle is the title-bar text: the title, with " — zsh" appended for
+// the terminal presets.
+func (s Settings) DisplayTitle() string {
+	if s.Preset.IsTerminal() {
+		return s.Title + " — zsh"
+	}
+	return s.Title
+}
+
+// Badge kinds shown in the title bar's right slot.
+const (
+	BadgeNone  = ""
+	BadgeAPI   = "api"   // method + status
+	BadgeRegex = "regex" // "/" + flags
+)
+
+// Badge reports which badge, if any, the title bar shows.
+func (s Settings) Badge() string {
+	switch {
+	case s.Preset.Key == "api" && s.ShowBadge:
+		return BadgeAPI
+	case s.Preset.Key == "regex" && s.Flags != "":
+		return BadgeRegex
+	}
+	return BadgeNone
+}
+
+var nonAlnum = regexp.MustCompile(`[^a-z0-9]+`)
+
+// Slug derives the output file stem from the title: lower-case,
+// non-alphanumeric runs become "-", trimmed, at most 40
+// characters, falling back to the preset key and then to "codeshot".
+func Slug(title, presetKey string) string {
+	s := title
+	if s == "" {
+		s = presetKey
+	}
+	s = nonAlnum.ReplaceAllString(strings.ToLower(s), "-")
+	s = strings.Trim(s, "-")
+	if len(s) > 40 {
+		s = s[:40]
+	}
+	if s == "" {
+		return "codeshot"
+	}
+	return s
+}
+
+func contains(list []string, v string) bool {
+	for _, x := range list {
+		if x == v {
+			return true
+		}
+	}
+	return false
+}

@@ -1,0 +1,12 @@
+codeshot/
+├── app/
+│   ├── components/
+│   │   ├── Studio.tsx
+│   │   └── canvas.tsx
+│   ├── lib/
+│   │   ├── tools.ts
+│   │   └── themes.ts
+│   ├── layout.tsx
+│   └── page.tsx
+├── public/
+└── package.json

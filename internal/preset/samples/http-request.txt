@@ -1,0 +1,10 @@
+POST /api/snippets HTTP/1.1
+Host: api.example.com
+X-Request-Id: 8Kq2f4a9
+Content-Type: application/json
+Accept: application/json
+
+{
+  "language": "typescript",
+  "public": true
+}

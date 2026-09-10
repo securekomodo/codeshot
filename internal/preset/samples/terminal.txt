@@ -1,0 +1,7 @@
+$ npm create codeshot@latest
+✔ Project name … my-shots
+✔ Export format … PNG + SVG
+✔ Installing dependencies
+
+  Ready in 1.2s
+  Local:  http://localhost:3000

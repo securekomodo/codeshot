@@ -1,0 +1,14 @@
+{
+  "id": "snp_8Kq2",
+  "object": "snippet",
+  "language": "typescript",
+  "lines": 42,
+  "theme": "dracula",
+  "public": true,
+  "created": "2026-06-25T10:04:00Z",
+  "owner": {
+    "handle": "ada",
+    "verified": true
+  },
+  "tags": ["async", "fetch", "demo"]
+}

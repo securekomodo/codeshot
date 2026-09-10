@@ -1,0 +1,54 @@
+package main
+
+import (
+	"bytes"
+	"flag"
+	"reflect"
+	"strings"
+	"testing"
+)
+
+func TestParseInterspersed(t *testing.T) {
+	cases := []struct {
+		args []string
+		pos  []string
+		out  string
+	}{
+		{[]string{"-o", "x.png", "main.go"}, []string{"main.go"}, "x.png"},
+		{[]string{"main.go", "-o", "x.png"}, []string{"main.go"}, "x.png"},
+		{[]string{"a", "-o", "x.png", "b"}, []string{"a", "b"}, "x.png"},
+		{[]string{"--", "-weird.go"}, []string{"-weird.go"}, ""},
+		{[]string{"-"}, []string{"-"}, ""},
+		{nil, nil, ""},
+	}
+	for _, c := range cases {
+		fs := flag.NewFlagSet("t", flag.ContinueOnError)
+		out := fs.String("o", "", "")
+		pos, err := parseInterspersed(fs, c.args)
+		if err != nil {
+			t.Fatalf("%v: %v", c.args, err)
+		}
+		if !reflect.DeepEqual(pos, c.pos) || *out != c.out {
+			t.Errorf("%v: positional %v (want %v), -o %q (want %q)", c.args, pos, c.pos, *out, c.out)
+		}
+	}
+}
+
+func TestListAndUsageErrors(t *testing.T) {
+	var out bytes.Buffer
+	if err := run([]string{"ignored.go", "--list", "presets"}, strings.NewReader(""), &out); err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(out.String(), "terminal-session") {
+		t.Errorf("list presets output: %q", out.String())
+	}
+	if err := run([]string{"a.go", "b.go"}, strings.NewReader(""), &out); err == nil {
+		t.Error("two files should be a usage error")
+	}
+	if err := run([]string{"--preset", "nope", "--sample"}, strings.NewReader(""), &out); err == nil {
+		t.Error("unknown preset should fail")
+	}
+	if err := run([]string{"--lang", "nope-lang", "--sample"}, strings.NewReader(""), &out); err == nil {
+		t.Error("unknown language should fail")
+	}
+}

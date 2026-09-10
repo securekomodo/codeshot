@@ -1,0 +1,11 @@
+Lighthouse · example.com
+
+Performance         98
+Accessibility      100
+Best Practices      96
+SEO                100
+
+First Contentful Paint   0.6 s
+Largest Contentful Paint 1.1 s
+Total Blocking Time      20 ms
+Bundle (gzipped)         142 kB

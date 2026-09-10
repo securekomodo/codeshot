@@ -1,0 +1,8 @@
+commit 8Kq2f4a9c1e07b3d2a6f8901234567890abcdef12
+Author: Ada Lovelace <ada@example.com>
+Date:   Thu Jun 25 10:04:00 2026 +0000
+
+    feat(studio): edit code directly on the canvas
+
+    Replace the separate input box with a transparent
+    textarea layered over the highlighted output.

@@ -1,0 +1,10 @@
+SELECT
+  u.handle,
+  count(s.id) AS snippets,
+  max(s.created_at) AS last_shared
+FROM users u
+JOIN snippets s ON s.owner_id = u.id
+WHERE s.is_public = true
+GROUP BY u.handle
+ORDER BY snippets DESC
+LIMIT 10;

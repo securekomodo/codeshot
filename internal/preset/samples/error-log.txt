@@ -1,0 +1,7 @@
+2026-06-25 10:04:11  INFO   Server listening on :3000
+2026-06-25 10:04:12  DEBUG  Connected to postgres (12ms)
+2026-06-25 10:04:18  WARN   Slow query: GET /api/snippets (842ms)
+2026-06-25 10:04:21  ERROR  Unhandled rejection: Snippet not found
+    at fetchSnippet (app/lib/data.ts:14:11)
+    at async Page (app/[slug]/page.tsx:8:18)
+2026-06-25 10:04:21  FATAL  Worker 3 exited with code 1
