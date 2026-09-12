@@ -1,10 +1,8 @@
 $ nimbus deploy --env production
 ✔ Built 42 functions in 3.8s
 ✔ Uploaded 12 assets (1.4 MB)
-✔ Migrated 3 tables
-Deploying to https://nimbus.example.com ...
-[prod a91c3f2] Release v2.4.0
+Deploying to https://nimbus.example.com ... done
 $ nimbus status
 api      healthy   p95 41 ms
 workers  healthy   queue 0
-$ echo "all good" | tee -a deploy.log
+$

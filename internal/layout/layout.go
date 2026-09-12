@@ -311,15 +311,17 @@ func Compute(in Input) (*Layout, error) {
 	// Whole pixels keep the PNG size exact at every scale (the badge bar is 50.5px).
 	cardH := math.Ceil(barH + CodePadTop + float64(len(rows))*lh + CodePadBottom)
 	pad := float64(s.Padding)
-	band := 0.0
+	// A caption takes the place of the top padding: the space above the
+	// window is whatever is larger, the padding or the pill with some air.
+	top := pad
 	if s.Label != "" {
-		band = labelBand(float64(s.LabelSize))
+		top = math.Max(pad, labelBand(float64(s.LabelSize)))
 	}
 
 	L := &Layout{
-		W: cardW + 2*pad, H: cardH + 2*pad + band,
+		W: cardW + 2*pad, H: cardH + pad + top,
 		Backdrop: in.Backdrop, ShowBackground: s.ShowBackground && !in.Backdrop.Transparent,
-		Card:   Rect{pad, pad + band, cardW, cardH},
+		Card:   Rect{pad, top, cardW, cardH},
 		Radius: float64(s.Radius), CardRadius: float64(s.CardRadius),
 		Window: window, Shadow: s.Shadow, Light: light,
 		Font: in.Code, FontSize: size, LineHeight: lh, Plain: plain, Center: milestone,
@@ -331,7 +333,7 @@ func Compute(in Input) (*Layout, error) {
 		L.Chrome = buildChrome(L.Card, barH, s.DisplayTitle(), titleFont, badge, inset, light)
 	}
 	if s.Label != "" {
-		L.Label = buildLabel(L.Card, s.Label, titleFont, float64(s.LabelSize))
+		L.Label = buildLabel(L.Card, s.Label, titleFont, float64(s.LabelSize), top)
 	}
 
 	asc, desc := in.Code.Metrics(size)
@@ -427,18 +429,18 @@ func buildKaliChrome(card Rect, title string, font *fonts.Face, badge *Badge) *C
 	return c
 }
 
-// labelBand is the extra space above the window that holds a caption of
-// the given font size.
-func labelBand(size float64) float64 { return math.Round(size * 3.4) }
+// labelBand is the space a caption of the given font size needs above the
+// window: the pill plus air above and below it.
+func labelBand(size float64) float64 { return math.Round(size*2) + 2*math.Round(size*0.75) }
 
-// buildLabel centers a caption pill in the band above the window. The
-// pill, its padding and the band all scale with the font size.
-func buildLabel(card Rect, text string, font *fonts.Face, size float64) *Label {
+// buildLabel centers a caption pill in the space above the window (top px
+// high). The pill and its padding scale with the font size.
+func buildLabel(card Rect, text string, font *fonts.Face, size, top float64) *Label {
 	padX := math.Round(size * 1.1)
 	height := math.Round(size * 2)
 	text = truncate(text, font, size, card.W-2*padX)
 	w := math.Ceil(font.Width(text, size) + 2*padX)
-	cx, cy := card.X+card.W/2, card.Y-labelBand(size)/2
+	cx, cy := card.X+card.W/2, card.Y-top/2
 	asc, desc := font.Metrics(size)
 	return &Label{
 		Box: Rect{cx - w/2, cy - height/2, w, height},

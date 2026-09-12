@@ -162,8 +162,8 @@ func TestComputeBadgeWidthMilestone(t *testing.T) {
 	s.Label = "JavaScript"
 	in.Settings = s
 	L, _ = Compute(in)
-	band := labelBand(float64(s.LabelSize))
-	if L.Label == nil || L.Card.Y != 48+band || L.H != L.Card.H+96+band ||
+	top := math.Max(48, labelBand(float64(s.LabelSize)))
+	if L.Label == nil || L.Card.Y != top || L.H != L.Card.H+48+top ||
 		L.Label.Text.Text != "JavaScript" || L.Label.Box.X+L.Label.Box.W/2 != L.Card.X+L.Card.W/2 {
 		t.Errorf("label layout: card %+v label %+v", L.Card, L.Label)
 	}
@@ -174,7 +174,7 @@ func TestComputeBadgeWidthMilestone(t *testing.T) {
 	s.LabelSize = 28
 	in.Settings = s
 	L, _ = Compute(in)
-	if L.Label.Box.H <= small.H || L.Label.Box.W <= small.W || L.Card.Y <= 48+band {
+	if L.Label.Box.H <= small.H || L.Label.Box.W <= small.W || L.Card.Y <= top {
 		t.Errorf("bigger label size should grow the pill and band: %+v", L.Label.Box)
 	}
 

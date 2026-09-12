@@ -1,10 +1,8 @@
 ❯ git clone https://github.com/example/nimbus.git
 Cloning into 'nimbus'... done.
-❯ cd nimbus && make test
-go test ./...
+❯ cd nimbus && make test && make run
 ok    nimbus/api/alerts    0.412s
 ok    nimbus/api/sensors   1.038s
-❯ make run
 nimbus-api listening on :8080
-❯ curl -s localhost:8080/health | jq .status
-"ok"
+health: ok  queue: 0  uptime: 4s
+❯

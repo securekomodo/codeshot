@@ -12,9 +12,10 @@ F=docs/showcase-frames; mkdir -p "$F"
 
 # n | label | preset | theme | backdrop | font | extra flags
 # Every sample is ten lines (the milestone six, balanced by padding and width).
-# Kali frames have taller bars, terminal line spacing and two-line prompts;
-# their padding and width are chosen so the frame is still 864x478:
-# pad = 159 - 9*rows, width = 864 - 2*pad.
+# Every frame is 864x432: height = card + pad + max(pad, 84), where 84 is the
+# caption band. Kali frames have taller bars, terminal line spacing and
+# two-line prompts, so their padding, width and font size are chosen to hit
+# the same frame height; so is the milestone's.
 while IFS='|' read -r n label preset th bg font extra; do
   [ -z "$n" ] && continue
   eval "extra_args=($extra)" # keeps quoted values such as --title "git log" together
@@ -22,20 +23,20 @@ while IFS='|' read -r n label preset th bg font extra; do
     --theme "$th" --bg "$bg" --font "$font" "${extra_args[@]}" -o "$F/$n.png" >/dev/null
 done <<'TABLE'
 01|Code Snippet|code|dracula|ember|cascadia|--title alerts.js
-02|Terminal Window|terminal|kali|slate|dejavu|--chrome kali --cursor --padding 24 --width 816
+02|Terminal Window|terminal|kali|slate|dejavu|--chrome kali --cursor --padding 36 --width 792
 03|API Response|api|oneLight|paper|space|--no-badge --title reading.json
-04|Error & Log|error-log|vsDark|ink|cascadia|--chrome kali --padding 69 --width 726 --title "kali@kali: ~"
+04|Error & Log|error-log|vsDark|ink|cascadia|--chrome kali --padding 87 --width 690 --title "kali@kali: ~"
 05|Database Schema|db-schema|nightOwl|tide|jetbrains|--title schema.sql
 06|SQL Query|sql-query|palenight|mint|geist|--title warmest.sql
 07|Regex|regex|okaidia|darkroom|fira|--flags "" --title patterns.re
 08|Git Commit|git-commit|gruvboxDark|rose|source|--title "git log"
 09|Project Structure|project-structure|oneDark|dusk|fira|--title nimbus
 10|Environment Variables|env-vars|oceanicNext|citrus|ibm|--title .env
-11|Terminal Session|terminal-session|kali|darkroom|dejavu|--chrome kali --cursor --padding 6 --width 852
-12|Developer Milestone|dev-milestone|shadesOfPurple|dusk|space|--padding 69 --width 726
+11|Terminal Session|terminal-session|kali|darkroom|dejavu|--chrome kali --cursor --padding 36 --width 792
+12|Developer Milestone|dev-milestone|shadesOfPurple|dusk|space|--padding 87 --width 690
 13|HTTP Request|http-request|palenight|slate|source|--title alert.http
 14|Git Diff|git-diff|okaidia|rose|geist|--title notify.diff
-15|Test Results|test-results|gruvboxDark|citrus|ibm|--chrome kali --padding 69 --width 726 --title "kali@kali: ~"
+15|Test Results|test-results|gruvboxDark|citrus|ibm|--chrome kali --padding 87 --width 690 --title "kali@kali: ~"
 16|ASCII Tree|ascii-tree|oneLight|paper|space|--title pipeline
 17|Performance Metrics|perf-metrics|dracula|darkroom|jetbrains|--title lighthouse
 TABLE
