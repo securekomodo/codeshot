@@ -1,10 +1,10 @@
-SELECT
-  u.handle,
-  count(s.id) AS snippets,
-  max(s.created_at) AS last_shared
-FROM users u
-JOIN snippets s ON s.owner_id = u.id
-WHERE s.is_public = true
-GROUP BY u.handle
-ORDER BY snippets DESC
-LIMIT 10;
+WITH recent AS (
+  SELECT station_id, avg(temperature) AS avg_temp
+  FROM readings
+  WHERE taken_at > now() - interval '24 hours'
+  GROUP BY station_id
+)
+SELECT s.name, round(r.avg_temp::numeric, 1) AS avg_temp
+FROM stations s JOIN recent r ON r.station_id = s.id
+WHERE s.active
+ORDER BY avg_temp DESC LIMIT 5;

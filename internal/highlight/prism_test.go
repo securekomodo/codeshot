@@ -1,6 +1,7 @@
 package highlight
 
 import (
+	"strings"
 	"testing"
 
 	"codeshot/internal/preset"
@@ -92,12 +93,13 @@ func TestRegexLexer(t *testing.T) {
 	dr, _ := theme.Get("dracula")
 	p, _ := preset.Get("regex")
 	sample, _ := p.Sample()
-	lines, err := Highlight([]string{sample, `^(?<a>x|y)[^0-9]+$`}, "regex", dr)
+	input := append(strings.Split(strings.TrimSuffix(sample, "\n"), "\n"), `^(?<a>x|y)[^0-9]+$`)
+	lines, err := Highlight(input, "regex", dr)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(lines) != 2 {
-		t.Fatalf("lines = %d", len(lines))
+	if len(lines) != len(input) {
+		t.Fatalf("lines = %d want %d", len(lines), len(input))
 	}
 	if alt, ok := find(lines, "|"); !ok || alt.Color != "#bd93f9" {
 		t.Errorf("alternation should be keyword-colored: %+v", alt)
@@ -105,10 +107,11 @@ func TestRegexLexer(t *testing.T) {
 	if anchor, ok := find(lines, "^"); !ok || anchor.Color != "#50fa7b" {
 		t.Errorf("anchor should be function-colored: %+v", anchor)
 	}
-	if name, ok := find(lines, "a"); !ok || name.Color != "#bd93f9" {
+	last := lines[len(lines)-1:]
+	if name, ok := find(last, "a"); !ok || name.Color != "#bd93f9" {
 		t.Errorf("group name should be variable-colored: %+v", name)
 	}
-	if q, ok := find(lines, "+"); !ok || q.Color != "" {
+	if q, ok := find(last, "+"); !ok || q.Color != "" {
 		t.Errorf("dracula leaves numbers (quantifiers) plain: %+v", q)
 	}
 }

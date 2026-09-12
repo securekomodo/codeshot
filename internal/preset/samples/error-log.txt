@@ -1,7 +1,10 @@
-2026-06-25 10:04:11  INFO   Server listening on :3000
-2026-06-25 10:04:12  DEBUG  Connected to postgres (12ms)
-2026-06-25 10:04:18  WARN   Slow query: GET /api/snippets (842ms)
-2026-06-25 10:04:21  ERROR  Unhandled rejection: Snippet not found
-    at fetchSnippet (app/lib/data.ts:14:11)
-    at async Page (app/[slug]/page.tsx:8:18)
-2026-06-25 10:04:21  FATAL  Worker 3 exited with code 1
+2026-06-25 10:04:11  INFO   nimbus-api listening on :8080
+2026-06-25 10:04:12  DEBUG  Connected to postgres (9ms)
+2026-06-25 10:04:18  WARN   Slow query: GET /stations/PDX-07 (612ms)
+2026-06-25 10:04:21  ERROR  Sensor PDX-07 offline for 5m
+    at pollStation (api/sensors/poll.go:88)
+    at runPoller (api/sensors/poller.go:41)
+2026-06-25 10:04:22  INFO   Alert sent to 14 subscribers
+2026-06-25 10:04:30  TRACE  gc pause 1.2ms
+2026-06-25 10:04:41  FATAL  Worker 2 exited with code 137
+2026-06-25 10:04:42  INFO   Worker 2 restarted

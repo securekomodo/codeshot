@@ -1,11 +1,10 @@
-Lighthouse · example.com
+Lighthouse · nimbus.example.com
 
-Performance         98
-Accessibility      100
-Best Practices      96
-SEO                100
+Performance              97
+Accessibility           100
+Best Practices           92
+SEO                      88
 
-First Contentful Paint   0.6 s
-Largest Contentful Paint 1.1 s
-Total Blocking Time      20 ms
-Bundle (gzipped)         142 kB
+First Contentful Paint  0.7 s
+Time to Interactive     1.4 s
+Total Blocking Time     30 ms

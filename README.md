@@ -179,6 +179,7 @@ echo "🎉 v2.0 is out" | codeshot --preset dev-milestone --bg dusk
 
 # Caption it (this is how the frames of the animation above are labeled)
 codeshot --label "Before" old.go && codeshot --label "After" new.go
+codeshot --label "Release notes" --label-size 24 changelog.md
 
 # No backdrop: just the window and its shadow, on whatever you paste it into
 codeshot --transparent --copy main.go
@@ -239,6 +240,7 @@ codeshot [flags] [FILE]        FILE omitted or "-" reads stdin; flags may come b
 --font ID|PATH        cascadia (default), jetbrains, fira, geist, ibm, source, space, or a .ttf/.otf file
 --title TEXT          window title (default: the preset's)
 --label TEXT          caption drawn in a pill above the window
+--label-size PX       caption font size, 8..64 (default 14)
 --padding N           space around the card, 0..160 (default 48; 64 for dev-milestone)
 --font-size N         11..28 (default 15)
 --transparent         no backdrop: a transparent PNG with the window and its shadow (alias --no-bg, same as --bg none)
@@ -291,7 +293,7 @@ Long lines soft-wrap so the card is at most 768px wide, the width of a comfortab
 Roughly a second for a typical snippet at 2x. Bigger scales cost more pixels.
 
 **Are the sample snippets safe to share?**
-They are fictional. Any credential-looking value in them is a placeholder.
+They are original and fictional (a made-up weather-alerts service). Any credential-looking value in them is a placeholder.
 
 </details>
 

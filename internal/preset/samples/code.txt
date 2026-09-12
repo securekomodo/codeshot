@@ -1,10 +1,10 @@
-// A clear name beats a clever one.
-async function fetchSnippet(id) {
-  const res = await fetch(`/api/snippets/${id}`);
-  if (!res.ok) throw new Error("Snippet not found");
-
-  const { language, body } = await res.json();
-  return { language, body, length: body.length };
+// Debounce alerts so a flapping sensor doesn't page anyone twice.
+export function debounce(fn, wait = 250) {
+  let timer = null;
+  return (...args) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => fn(...args), wait);
+  };
 }
 
-fetchSnippet("hello-world").then(console.log);
+export const notify = debounce((a) => post(`/alerts/${a.id}`, a));

@@ -1,10 +1,10 @@
-diff --git a/app/lib/export.ts b/app/lib/export.ts
-index 2b1c9f0..8d4e7a1 100644
---- a/app/lib/export.ts
-+++ b/app/lib/export.ts
-@@ -10,7 +10,8 @@ export async function exportPng(node, name) {
-   const url = await toPng(node, options);
--  triggerDownload(url, name + ".png");
-+  triggerDownload(url, `${name}.png`);
-+  return url;
- }
+diff --git a/api/alerts/notify.go b/api/alerts/notify.go
+--- a/api/alerts/notify.go
++++ b/api/alerts/notify.go
+@@ -12,6 +12,8 @@ func Notify(a Alert) error {
+ 	if a.Severity < Warning {
+-		return nil
++		log.Printf("skip %s: below threshold", a.ID)
++		return ErrBelowThreshold
+ 	}
+ 	return send(a)

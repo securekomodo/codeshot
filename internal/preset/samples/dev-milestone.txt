@@ -1,5 +1,6 @@
-🎉 10,000 snippets shared
-Codeshot just crossed ten thousand
-exported images — thank you!
+🚀 v2.4.0 is out
 
-— the codeshot team
+Alerts now debounce flapping sensors
+and reach subscribers 4x faster.
+
+Thanks to 23 contributors!

@@ -27,7 +27,8 @@ type Settings struct {
 	Radius     int // corner radius of the backdrop (the image itself), 0 = square
 	CardRadius int // corner radius of the window
 
-	Label string // caption pill drawn above the window ("" = none)
+	Label     string // caption pill drawn above the window ("" = none)
+	LabelSize int    // caption font size in px
 
 	ShowBackground  bool
 	ShowChrome      bool
@@ -45,6 +46,9 @@ type Settings struct {
 	Width    int // fixed card width in px; 0 = fit content
 	MaxWidth int // wrap so the card is at most this wide; 0 = unlimited
 }
+
+// DefaultLabelSize is the caption's font size in px.
+const DefaultLabelSize = 14
 
 // DefaultCardRadius is the window's corner radius in px.
 const DefaultCardRadius = 12
@@ -83,6 +87,7 @@ func Defaults(p preset.Preset) Settings {
 		Scale:           2,
 		MaxWidth:        DefaultMaxWidth,
 		CardRadius:      DefaultCardRadius,
+		LabelSize:       DefaultLabelSize,
 	}
 	if s.Language == "" {
 		s.Language = "javascript"
@@ -113,6 +118,9 @@ func (s *Settings) Validate() error {
 	}
 	if s.FontSize < 11 || s.FontSize > 28 {
 		return fmt.Errorf("font size %d out of range 11..28", s.FontSize)
+	}
+	if s.LabelSize < 8 || s.LabelSize > 64 {
+		return fmt.Errorf("label size %d out of range 8..64", s.LabelSize)
 	}
 	if s.Radius < 0 || s.Radius > 200 || s.CardRadius < 0 || s.CardRadius > 200 {
 		return fmt.Errorf("radius values must be 0..200")

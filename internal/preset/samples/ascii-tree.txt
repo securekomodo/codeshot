@@ -1,7 +1,10 @@
-Decision
-├── Cache hit?
-│   ├── yes → serve cached
-│   └── no  → render
-└── Authenticated?
-    ├── yes → dashboard
-    └── no  → login
+Incoming reading
+├── Sensor known?
+│   ├── yes → validate
+│   └── no  → quarantine
+├── Within range?
+│   ├── yes → store
+│   └── no  → flag + alert
+└── Alert threshold crossed?
+    ├── yes → debounce → notify
+    └── no  → done

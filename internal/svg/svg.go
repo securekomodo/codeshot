@@ -50,8 +50,8 @@ func Render(L *layout.Layout, o Options) []byte {
 		w.printf(`<g clip-path="url(#backdrop)">`)
 	}
 	if l := L.Label; l != nil {
-		w.printf(`<rect x="%s" y="%s" width="%s" height="%s" rx="%s" fill="#000000" fill-opacity="0.32"/>`,
-			num(l.Box.X), num(l.Box.Y), num(l.Box.W), num(l.Box.H), num(l.Box.H/2))
+		w.printf(`<rect x="%s" y="%s" width="%s" height="%s" rx="%s" fill="#000000" fill-opacity="0.34" stroke="#ffffff" stroke-opacity="0.14" stroke-width="1"/>`,
+			num(l.Box.X+0.5), num(l.Box.Y+0.5), num(l.Box.W-1), num(l.Box.H-1), num((l.Box.H-1)/2))
 		w.text(l.Text)
 	}
 	if o.FastShadow {

@@ -1,10 +1,10 @@
-PASS  app/lib/export.test.ts
-  exportPng
-    ✓ renders a PNG data url (24 ms)
-    ✓ slugifies the filename (3 ms)
-  copyImage
-    ✕ falls back when clipboard is missing (8 ms)
-    ○ skipped: writes image/png to clipboard
+PASS  api/alerts/debounce_test.go
+  debounce
+    ✓ collapses bursts into one call (12 ms)
+    ✓ fires after the wait elapses (251 ms)
+  notify
+    ✗ retries when the webhook times out (1204 ms)
+    ○ skipped: batches alerts per station
 
 Tests:  3 passed, 1 failed, 1 skipped, 5 total
-Time:   1.42 s
+Time:   1.48 s

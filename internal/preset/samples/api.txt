@@ -1,14 +1,10 @@
 {
-  "id": "snp_8Kq2",
-  "object": "snippet",
-  "language": "typescript",
-  "lines": 42,
-  "theme": "dracula",
-  "public": true,
-  "created": "2026-06-25T10:04:00Z",
-  "owner": {
-    "handle": "ada",
-    "verified": true
-  },
-  "tags": ["async", "fetch", "demo"]
+  "station": "PDX-07",
+  "temperature": 18.4,
+  "humidity": 0.62,
+  "wind": { "speed": 12, "gust": 19, "dir": "NW" },
+  "alerts": ["frost", "high-wind"],
+  "updated": "2026-06-25T10:04:00Z",
+  "healthy": true,
+  "next_reading_in": 300
 }

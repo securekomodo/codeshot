@@ -30,10 +30,6 @@ const (
 	BadgeHeight   = 26.5
 	BadgeRadius   = 6
 	BadgeGap      = 8
-	LabelBand     = 44 // extra space above the window when a label is shown
-	LabelSize     = 12
-	LabelHeight   = 26
-	LabelPadX     = 12
 	CodePadX      = 16
 	CodePadTop    = 4
 	CodePadBottom = 20
@@ -239,7 +235,7 @@ func Compute(in Input) (*Layout, error) {
 	pad := float64(s.Padding)
 	band := 0.0
 	if s.Label != "" {
-		band = LabelBand
+		band = labelBand(float64(s.LabelSize))
 	}
 
 	L := &Layout{
@@ -255,7 +251,7 @@ func Compute(in Input) (*Layout, error) {
 		L.Chrome = buildChrome(L.Card, barH, s.DisplayTitle(), titleFont, badge, inset, light)
 	}
 	if s.Label != "" {
-		L.Label = buildLabel(L.Card, s.Label, titleFont)
+		L.Label = buildLabel(L.Card, s.Label, titleFont, float64(s.LabelSize))
 	}
 
 	asc, desc := in.Code.Metrics(size)
@@ -280,16 +276,23 @@ func Compute(in Input) (*Layout, error) {
 	return L, nil
 }
 
-// buildLabel centers a caption pill in the band above the window.
-func buildLabel(card Rect, text string, font *fonts.Face) *Label {
-	text = truncate(text, font, LabelSize, card.W-2*LabelPadX)
-	w := math.Ceil(font.Width(text, LabelSize) + 2*LabelPadX)
-	cx, cy := card.X+card.W/2, card.Y-LabelBand/2
-	asc, desc := font.Metrics(LabelSize)
+// labelBand is the extra space above the window that holds a caption of
+// the given font size.
+func labelBand(size float64) float64 { return math.Round(size * 3.4) }
+
+// buildLabel centers a caption pill in the band above the window. The
+// pill, its padding and the band all scale with the font size.
+func buildLabel(card Rect, text string, font *fonts.Face, size float64) *Label {
+	padX := math.Round(size * 1.1)
+	height := math.Round(size * 2)
+	text = truncate(text, font, size, card.W-2*padX)
+	w := math.Ceil(font.Width(text, size) + 2*padX)
+	cx, cy := card.X+card.W/2, card.Y-labelBand(size)/2
+	asc, desc := font.Metrics(size)
 	return &Label{
-		Box: Rect{cx - w/2, cy - LabelHeight/2, w, LabelHeight},
-		Text: Text{X: cx, Y: cy + (asc-desc)/2, Anchor: "middle", Size: LabelSize, Font: font, Weight: 500,
-			Text: text, Color: theme.Color{Hex: "#ffffff", Alpha: 0.92}},
+		Box: Rect{cx - w/2, cy - height/2, w, height},
+		Text: Text{X: cx, Y: cy + (asc-desc)/2, Anchor: "middle", Size: size, Font: font, Weight: 500,
+			Text: text, Color: theme.Color{Hex: "#ffffff", Alpha: 0.94}},
 	}
 }
 

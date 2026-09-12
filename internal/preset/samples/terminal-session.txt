@@ -1,8 +1,10 @@
-$ git clone https://github.com/you/codeshot.git
-Cloning into 'codeshot'...
-$ cd codeshot && npm install
-added 312 packages in 4s
-$ npm run dev
-  ▲ Next.js 16.2.9
-  - Local: http://localhost:3000
-✓ Ready in 1.2s
+❯ git clone https://github.com/example/nimbus.git
+Cloning into 'nimbus'... done.
+❯ cd nimbus && make test
+go test ./...
+ok    nimbus/api/alerts    0.412s
+ok    nimbus/api/sensors   1.038s
+❯ make run
+nimbus-api listening on :8080
+❯ curl -s localhost:8080/health | jq .status
+"ok"
