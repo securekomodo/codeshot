@@ -40,7 +40,7 @@ const Default = "code"
 // All lists the presets in display order.
 var All = []Preset{
 	{"code", Prism, "snippet.js", "javascript", ""},
-	{"terminal", Terminal, "zsh", "", "$"},
+	{"terminal", Terminal, "Terminal", "", "$"},
 	{"api", Prism, "response.json", "json", ""},
 	{"error-log", Log, "server.log", "", ""},
 	{"db-schema", Prism, "schema.sql", "sql", ""},
@@ -49,7 +49,7 @@ var All = []Preset{
 	{"git-commit", Git, "git log", "", ""},
 	{"project-structure", Tree, "structure", "", ""},
 	{"env-vars", Env, ".env", "", ""},
-	{"terminal-session", Terminal, "zsh", "", "$"},
+	{"terminal-session", Terminal, "Session", "", "$"},
 	{"dev-milestone", Milestone, "milestone", "", ""},
 	{"http-request", HTTP, "request.http", "", ""},
 	{"git-diff", Diff, "changes.diff", "", ""},

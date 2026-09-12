@@ -3,6 +3,8 @@ package highlight
 import (
 	"reflect"
 	"testing"
+
+	"codeshot/internal/theme"
 )
 
 func TestColorizers(t *testing.T) {
@@ -15,10 +17,6 @@ func TestColorizers(t *testing.T) {
 		mode, in string
 		want     Line
 	}{
-		{"terminal", "$ npm test", Line{c("$", Teal), p(" npm test")}},
-		{"terminal", "❯ ls", Line{c("❯", Teal), p(" ls")}},
-		{"terminal", "$npm", Line{d("$npm")}},
-		{"terminal", "output line", Line{d("output line")}},
 		{"log", "2026-06-25 10:04:11  INFO   Server listening", Line{d("2026-06-25 10:04:11"), c("  INFO   Server listening", Teal)}},
 		{"log", "10:04:21  ERROR  Unhandled rejection", Line{d("10:04:21"), c("  ERROR  Unhandled rejection", Red)}},
 		{"log", "    at fetchSnippet (app/lib/data.ts:14:11)", Line{d("    at fetchSnippet (app/lib/data.ts:14:11)")}},
@@ -64,20 +62,97 @@ func TestColorizers(t *testing.T) {
 		{"metrics", "42", Line{p("42")}},
 		{"milestone", "🎉 10,000 snippets shared", Line{p("🎉 10,000 snippets shared")}},
 	}
+	dr, _ := theme.Get("dracula")
 	for _, tc := range cases {
-		got := Colorize(tc.mode, []string{tc.in}, "", false)[0]
+		got := Colorize(tc.mode, []string{tc.in}, "", dr)[0]
 		if !reflect.DeepEqual(got, tc.want) {
 			t.Errorf("%s %q:\n got %+v\nwant %+v", tc.mode, tc.in, got, tc.want)
 		}
 	}
 }
 
-func TestTerminalPromptAndLight(t *testing.T) {
-	got := Colorize("terminal", []string{"$ ls", "out"}, "❯", true)
-	if got[0][0].Text != "❯" || got[0][0].Color != Teal || got[0][1].Text != " ls" {
-		t.Errorf("prompt replacement: %+v", got[0])
+func TestTerminalCommands(t *testing.T) {
+	dr, _ := theme.Get("dracula")
+	pal := NewPalette(dr)
+	got := Colorize("terminal", []string{
+		`$ git commit -m "Add post" && git push`,
+		"❯ FOO=1 sudo make -j4 # build",
+		"$npm",
+	}, "", dr)
+	want0 := Line{
+		{Text: "$", Color: Teal}, {Text: " "}, pal.span(pal.Function, "git"), {Text: " "}, {Text: "commit"}, {Text: " "},
+		pal.span(pal.Keyword, "-m"), {Text: " "}, pal.span(pal.String, `"Add post"`), {Text: " "},
+		pal.span(pal.Operator, "&&"), {Text: " "}, pal.span(pal.Function, "git"), {Text: " "}, {Text: "push"},
 	}
-	if got[1][0].Color != "#000000" || got[1][0].Opacity != 0.5 {
-		t.Errorf("light dim: %+v", got[1])
+	if !reflect.DeepEqual(got[0], want0) {
+		t.Errorf("command line:\n got %+v\nwant %+v", got[0], want0)
+	}
+	want1 := Line{
+		{Text: "❯", Color: Teal}, {Text: " "}, pal.span(pal.Variable, "FOO=1"), {Text: " "}, pal.span(pal.Function, "sudo"),
+		{Text: " "}, pal.span(pal.Function, "make"), {Text: " "}, pal.span(pal.Keyword, "-j4"), {Text: " "}, pal.span(pal.Comment, "# build"),
+	}
+	if !reflect.DeepEqual(got[1], want1) {
+		t.Errorf("prefix/assign/comment:\n got %+v\nwant %+v", got[1], want1)
+	}
+	if got[2][0].Text != "$npm" || got[2][0].Color != "" {
+		t.Errorf("no prompt space: %+v", got[2])
+	}
+	if pal.Function.Color != "#50fa7b" || pal.String.Color != "#ff79c6" || pal.Number.Color != Amber {
+		t.Errorf("palette from theme: %+v", pal)
+	}
+}
+
+func TestTerminalOutput(t *testing.T) {
+	dr, _ := theme.Get("dracula")
+	pal := NewPalette(dr)
+	out := Colorize("terminal", []string{
+		"[main 8c41f2e] Add post",
+		" 3 files changed, 142 insertions(+)",
+		"Writing objects: 100% (7/7), 1.21 MiB | 9.80 MiB/s, done.",
+		"To https://github.com/example/site.git",
+		"   623c873..8c41f2e  main -> main",
+		"> astro build",
+		"23:12:40 [build] 90 page(s) built in 6.31s",
+		"✔ Project name … my-shots",
+		"error: something failed",
+		"",
+	}, "", dr)
+	find := func(i int, text string) (Span, bool) {
+		for _, sp := range out[i] {
+			if sp.Text == text {
+				return sp, true
+			}
+		}
+		return Span{}, false
+	}
+	checks := []struct {
+		line  int
+		text  string
+		color string
+	}{
+		{0, "[main 8c41f2e]", pal.Keyword.Color}, {0, " Add post", ""},
+		{1, "3", pal.Number.Color}, {1, "142", pal.Number.Color},
+		{2, "100%", pal.Number.Color}, {2, "1.21 MiB", pal.Number.Color}, {2, "9.80 MiB/s", pal.Number.Color}, {2, "done", Teal},
+		{3, "https://github.com/example/site.git", pal.URL.Color},
+		{4, "623c873..8c41f2e", pal.Number.Color}, {4, "->", pal.Operator.Color},
+		{6, "23:12:40", pal.Dim.Color}, {6, "[build]", pal.Keyword.Color}, {6, "6.31s", pal.Number.Color},
+		{7, "✔", Teal}, {8, "error", Red}, {8, "failed", Red},
+	}
+	for _, ck := range checks {
+		sp, ok := find(ck.line, ck.text)
+		if !ok || sp.Color != ck.color {
+			t.Errorf("line %d %q: got %+v want color %q", ck.line, ck.text, sp, ck.color)
+		}
+	}
+	if out[5][0].Color != pal.Dim.Color || out[5][0].Text != "> astro build" {
+		t.Errorf("script echo should be dim: %+v", out[5])
+	}
+	if len(out[9]) != 1 || out[9][0].Text != "" {
+		t.Errorf("empty line: %+v", out[9])
+	}
+	gh, _ := theme.Get("github")
+	light := Colorize("terminal", []string{"12:00:00 x"}, "", gh)
+	if light[0][0].Color != "#000000" || light[0][0].Opacity != 0.5 {
+		t.Errorf("light dim: %+v", light[0])
 	}
 }

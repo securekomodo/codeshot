@@ -127,9 +127,9 @@ func (s *Settings) Validate() error {
 }
 
 // DisplayTitle is the title-bar text: the title, with " — zsh" appended for
-// the terminal presets.
+// the terminal presets unless it already ends that way.
 func (s Settings) DisplayTitle() string {
-	if s.Preset.IsTerminal() {
+	if s.Preset.IsTerminal() && !strings.HasSuffix(s.Title, " — zsh") && s.Title != "zsh" {
 		return s.Title + " — zsh"
 	}
 	return s.Title

@@ -66,7 +66,7 @@ func Build(s settings.Settings, src string) (*Card, error) {
 			return nil, fmt.Errorf("highlight: %w", err)
 		}
 	} else {
-		in.Lines = highlight.Colorize(s.Preset.Render, lines, s.Prompt, th.Light())
+		in.Lines = highlight.Colorize(s.Preset.Render, lines, s.Prompt, th)
 	}
 
 	L, err := layout.Compute(in)

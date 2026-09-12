@@ -38,7 +38,8 @@
 go build -o codeshot ./cmd/codeshot           # that's the whole install
 
 codeshot main.go                              # → main-go.png, language guessed from the name
-cat query.sql | codeshot --lang sql           # stdin works too
+git diff | codeshot                           # piped input picks its own preset: a diff here
+cat query.sql | codeshot --lang sql           # or say what it is
 codeshot --theme nightOwl --bg tide app.tsx   # pick a theme and a backdrop
 codeshot --copy notes.md                      # straight to the clipboard, ready to paste
 codeshot --preset git-diff --sample -o d.svg  # every preset ships a sample; .svg gets you vectors
@@ -54,7 +55,7 @@ codeshot --list themes                        # themes, backdrops, fonts, langua
     <td valign="top" width="33%"><b>🖼️ A frame that looks finished</b><br>macOS-style window, soft shadow, gradient backdrops, line numbers, a title bar with badges. Tune every knob or keep the defaults.</td>
   </tr>
   <tr>
-    <td valign="top"><b>🧰 Seventeen presets</b><br>Terminal sessions, git logs and diffs, server logs, HTTP requests, test output, .env files, ASCII trees, Lighthouse-style metrics. Each one colors its lines the way that content deserves.</td>
+    <td valign="top"><b>🧰 Seventeen presets, picked for you</b><br>Terminal sessions, git logs and diffs, server logs, HTTP requests, test output, .env files, ASCII trees, Lighthouse-style metrics. Pipe something in and the right one is chosen from the content. Terminal sessions get real shell highlighting: commands, flags, strings, pipes, and status words, numbers, hashes and URLs in the output.</td>
     <td valign="top"><b>📐 Crisp at any size</b><br>Retina PNG at 2x by default (or 1x to 8x), or a standalone SVG with the fonts embedded, so it scales forever.</td>
     <td valign="top"><b>🔒 Nothing leaves your machine</b><br>No browser, no server, no network code at all. Paste production logs with a clear conscience.</td>
   </tr>
@@ -144,11 +145,14 @@ Each preset sets the render mode, title and language. Add <code>--sample</code> 
 ## Recipes
 
 ```sh
-# Share what you just changed
-git diff | codeshot --preset git-diff --title "fix: retry on 429" --copy
+# Share what you just changed (the diff preset is picked from the content)
+git diff | codeshot --title "fix: retry on 429" --copy
+
+# A whole shell session, with commands and output highlighted
+script -q /dev/null | tee session.txt; codeshot --preset terminal session.txt
 
 # The last ten commits, styled
-git log -10 | codeshot --preset git-commit --title "git log" -o log.png
+git log -10 | codeshot --title "git log" -o log.png
 
 # Test output from CI, minus the noise
 npm test 2>&1 | tail -20 | codeshot --preset test-results --title "npm test"
@@ -184,7 +188,7 @@ flowchart LR
     G --> I[clipboard]
 ```
 
-1. **Point it at code.** A file, stdin, or a preset's sample. The language comes from the file name, the preset, or <code>--lang</code>.
+1. **Point it at code.** A file, stdin, or a preset's sample. The language comes from the file name, the preset, or <code>--lang</code>; piped content that looks like a diff, a git log, a shell session, JSON, a tree, an .env file, an HTTP request, test output or a log gets that preset automatically.
 2. **Frame the shot.** Theme, backdrop, font, size, padding, window, shadow, line numbers, badges.
 3. **Export and share.** A retina PNG, a vector SVG, or the clipboard, ready to paste into a chat, a doc, or a slide.
 
@@ -236,6 +240,9 @@ codeshot [flags] [FILE]        FILE omitted or "-" reads stdin; flags may come b
 
 **Does my code leave my machine?**
 No. There is no network code in the binary at all. Highlighting, layout and rasterizing all happen in-process.
+
+**How does it know what I piped in?**
+It looks: <code>diff --git</code> headers, <code>commit</code> lines, <code>$</code> prompts, valid JSON, tree branches, <code>KEY=VALUE</code> lines, an HTTP request line, pass/fail marks, or timestamps and log levels. Anything else is treated as code. <code>--preset</code> or <code>--lang</code> always wins.
 
 **Which languages are supported?**
 JavaScript, TypeScript, JSX, TSX, Python, Go, Rust, C, C++, Swift, Kotlin, JSON, YAML, SQL, GraphQL, CSS, HTML and Markdown have theme-tuned highlighting. Any other name chroma knows (<code>bash</code>, <code>toml</code>, <code>dockerfile</code>, <code>diff</code>, dozens more) works too.

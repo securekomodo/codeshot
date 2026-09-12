@@ -4,16 +4,17 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	"unicode/utf8"
 
 	"codeshot/internal/preset"
+	"codeshot/internal/theme"
 )
 
-// Colorize applies the per-line colorizer for a non-Prism render mode. prompt replaces the prompt character in terminal modes ("" keeps
-// the original); light selects the dim color.
-func Colorize(mode string, lines []string, prompt string, light bool) []Line {
-	dimColor, dimOp := Dim(light)
-	c := colorizer{prompt: prompt, dim: Span{Color: dimColor, Opacity: dimOp}}
+// Colorize applies the per-line colorizer for a non-Prism render mode.
+// prompt replaces the prompt character in terminal modes ("" keeps the
+// original); the theme supplies the palette.
+func Colorize(mode string, lines []string, prompt string, th *theme.Theme) []Line {
+	pal := NewPalette(th)
+	c := colorizer{prompt: prompt, dim: pal.Dim, pal: pal}
 	out := make([]Line, len(lines))
 	for i, l := range lines {
 		switch mode {
@@ -45,31 +46,12 @@ func Colorize(mode string, lines []string, prompt string, light bool) []Line {
 type colorizer struct {
 	prompt string
 	dim    Span
+	pal    Palette
 }
 
 func plain(s string) Span                { return Span{Text: s} }
 func colored(s, c string) Span           { return Span{Text: s, Color: c} }
 func (c colorizer) dimmed(s string) Span { d := c.dim; d.Text = s; return d }
-
-var promptChars = []rune{'$', '❯', '#', '~'}
-
-func (c colorizer) terminal(l string) Line {
-	first, size := utf8.DecodeRuneInString(l)
-	isPrompt := false
-	for _, p := range promptChars {
-		if first == p {
-			isPrompt = true
-		}
-	}
-	if isPrompt && len(l) > size && l[size] == ' ' {
-		shown := c.prompt
-		if shown == "" {
-			shown = string(first)
-		}
-		return Line{colored(shown, Teal), plain(l[size:])}
-	}
-	return Line{c.dimmed(l)}
-}
 
 var (
 	logLevels = []struct {

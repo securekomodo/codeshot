@@ -3,6 +3,8 @@ package main
 import (
 	"bytes"
 	"flag"
+	"os"
+	"path/filepath"
 	"reflect"
 	"strings"
 	"testing"
@@ -31,6 +33,38 @@ func TestParseInterspersed(t *testing.T) {
 		if !reflect.DeepEqual(pos, c.pos) || *out != c.out {
 			t.Errorf("%v: positional %v (want %v), -o %q (want %q)", c.args, pos, c.pos, *out, c.out)
 		}
+	}
+}
+
+func TestSniffedPresetFromStdin(t *testing.T) {
+	dir := t.TempDir()
+	out := filepath.Join(dir, "d.svg")
+	diff := "diff --git a/x b/x\n--- a/x\n+++ b/x\n@@ -1 +1 @@\n-a\n+b\n"
+	var stdout bytes.Buffer
+	if err := run([]string{"-o", out}, strings.NewReader(diff), &stdout); err != nil {
+		t.Fatal(err)
+	}
+	svg, _ := os.ReadFile(out)
+	if !strings.Contains(string(svg), "changes.diff") {
+		t.Error("piped diff should pick the git-diff preset (title changes.diff)")
+	}
+	// An explicit preset or language is left alone.
+	if err := run([]string{"--lang", "go", "-o", out}, strings.NewReader(diff), &stdout); err != nil {
+		t.Fatal(err)
+	}
+	svg, _ = os.ReadFile(out)
+	if !strings.Contains(string(svg), "snippet.js") {
+		t.Error("--lang keeps the code preset")
+	}
+	// A file gets its name as the title.
+	src := filepath.Join(dir, "main.go")
+	os.WriteFile(src, []byte("package main\n"), 0o644)
+	if err := run([]string{src, "-o", out}, strings.NewReader(""), &stdout); err != nil {
+		t.Fatal(err)
+	}
+	svg, _ = os.ReadFile(out)
+	if !strings.Contains(string(svg), ">main.go<") {
+		t.Error("file name should be the title")
 	}
 }
 

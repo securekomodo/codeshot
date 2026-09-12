@@ -29,8 +29,13 @@ func TestDefaults(t *testing.T) {
 		t.Errorf("regex defaults = %+v", r)
 	}
 	term, _ := preset.Get("terminal")
-	if x := Defaults(term); x.DisplayTitle() != "zsh — zsh" || x.ShowLineNumbers || x.Language != "javascript" {
+	if x := Defaults(term); x.DisplayTitle() != "Terminal — zsh" || x.ShowLineNumbers || x.Language != "javascript" {
 		t.Errorf("terminal defaults = %+v title=%q", x, x.DisplayTitle())
+	}
+	x := Defaults(term)
+	x.Title = "deploy — zsh"
+	if x.DisplayTitle() != "deploy — zsh" {
+		t.Errorf("suffix doubled: %q", x.DisplayTitle())
 	}
 	api, _ := preset.Get("api")
 	a := Defaults(api)

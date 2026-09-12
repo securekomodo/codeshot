@@ -2,6 +2,7 @@
 // offline.
 //
 //	codeshot main.go                      # main-go.png, language from the extension
+//	git diff | codeshot                   # piped content picks its own preset (diff here)
 //	cat q.sql | codeshot --lang sql -o q.png
 //	codeshot --preset git-diff --sample -o diff.svg
 //	codeshot --theme github --bg paper --no-shadow snippet.js
@@ -24,6 +25,7 @@ import (
 	"codeshot/internal/preset"
 	"codeshot/internal/render"
 	"codeshot/internal/settings"
+	"codeshot/internal/sniff"
 	"codeshot/internal/theme"
 )
 
@@ -109,6 +111,25 @@ func run(args []string, stdin io.Reader, stdout io.Writer) error {
 	if !ok {
 		return usageError{fmt.Errorf("unknown preset %q (one of %s)", o.presetKey, preset.String())}
 	}
+
+	file := ""
+	if len(positional) == 1 && positional[0] != "-" {
+		file = positional[0]
+	}
+	src, err := readInput(p, o.sample, file, len(positional) == 1, stdin)
+	if err != nil {
+		return err
+	}
+	// With no preset or language asked for, and no file extension to go by,
+	// look at the content: a diff, a git log, a terminal session, JSON, a
+	// tree, an .env file, HTTP, test output or a log each get their preset.
+	guessed := ""
+	if file != "" {
+		guessed = highlight.DetectLanguage(file)
+	}
+	if !seen["preset"] && !seen["lang"] && !o.sample && (guessed == "" || guessed == "plaintext") {
+		p = sniff.Lookup(src, p)
+	}
 	s := settings.Defaults(p)
 	s.Theme, s.Backdrop, s.Font = o.themeID, o.bg, o.font
 	if seen["title"] {
@@ -137,25 +158,17 @@ func run(args []string, stdin io.Reader, stdout io.Writer) error {
 	}
 	s.Scale, s.Wrap, s.Width, s.MaxWidth = o.scale, o.wrap, o.width, o.maxWidth
 
-	file := ""
-	if len(positional) == 1 && positional[0] != "-" {
-		file = positional[0]
-	}
 	switch {
 	case seen["lang"]:
 		s.Language = o.lang
-	case p.Key == preset.Default && file != "":
-		if guess := highlight.DetectLanguage(file); guess != "" {
-			s.Language = guess
-		}
+	case p.Key == preset.Default && guessed != "":
+		s.Language = guessed
 	}
 	if p.Render == preset.Prism && !highlight.KnownLanguage(s.Language) {
 		return usageError{fmt.Errorf("unknown language %q (see --list languages)", s.Language)}
 	}
-
-	src, err := readInput(p, o.sample, file, len(positional) == 1, stdin)
-	if err != nil {
-		return err
+	if file != "" && !seen["title"] && p.Key == preset.Default {
+		s.Title = filepath.Base(file)
 	}
 	card, err := render.Build(s, src)
 	if err != nil {
