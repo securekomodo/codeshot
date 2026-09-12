@@ -14,8 +14,10 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"math/rand/v2"
 	"os"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -62,8 +64,8 @@ func run(args []string, stdin io.Reader, stdout io.Writer) error {
 	fs.StringVar(&o.presetKey, "preset", preset.Default, "tool preset: "+strings.Join(preset.Keys(), ", "))
 	fs.BoolVar(&o.sample, "sample", false, "render the preset's built-in sample instead of reading input")
 	fs.StringVar(&o.lang, "lang", "", "language for the code presets (default: preset's, or guessed from the file name)")
-	fs.StringVar(&o.themeID, "theme", theme.Default, "syntax theme: "+strings.Join(theme.IDs(), ", "))
-	fs.StringVar(&o.bg, "bg", theme.DefaultBackdrop, "backdrop: "+strings.Join(theme.BackdropIDs(), ", "))
+	fs.StringVar(&o.themeID, "theme", theme.Default, "syntax theme: "+strings.Join(theme.IDs(), ", ")+", or random")
+	fs.StringVar(&o.bg, "bg", theme.DefaultBackdrop, "backdrop: "+strings.Join(theme.BackdropIDs(), ", ")+", or random")
 	fs.StringVar(&o.bg, "backdrop", theme.DefaultBackdrop, "alias for --bg")
 	fs.StringVar(&o.font, "font", fonts.Default, "code font: "+strings.Join(fonts.IDs(), ", ")+", or a path to a .ttf/.otf file")
 	fs.StringVar(&o.title, "title", "", "window title (default: preset's)")
@@ -132,6 +134,14 @@ func run(args []string, stdin io.Reader, stdout io.Writer) error {
 	}
 	s := settings.Defaults(p)
 	s.Theme, s.Backdrop, s.Font = o.themeID, o.bg, o.font
+	if o.bg == "random" {
+		s.Backdrop = pickRandom(theme.BackdropIDs(), "none")
+		fmt.Fprintln(os.Stderr, "backdrop:", s.Backdrop)
+	}
+	if o.themeID == "random" {
+		s.Theme = pickRandom(theme.IDs())
+		fmt.Fprintln(os.Stderr, "theme:", s.Theme)
+	}
 	if seen["title"] {
 		s.Title = o.title
 	}
@@ -223,6 +233,17 @@ func run(args []string, stdin io.Reader, stdout io.Writer) error {
 	return nil
 }
 
+// pickRandom returns a random id from ids, skipping any in exclude.
+func pickRandom(ids []string, exclude ...string) string {
+	var pool []string
+	for _, id := range ids {
+		if !slices.Contains(exclude, id) {
+			pool = append(pool, id)
+		}
+	}
+	return pool[rand.IntN(len(pool))]
+}
+
 // parseInterspersed parses flags that appear before or after positional
 // arguments (Go's flag package stops at the first positional), so
 // "codeshot main.go -o out.png" works as people expect. "--" ends flag parsing.
@@ -276,10 +297,12 @@ func list(w io.Writer, what string) error {
 		for _, t := range theme.All() {
 			fmt.Fprintf(w, "%-15s %s (%s)\n", t.ID, t.Label, t.Mode)
 		}
+		fmt.Fprintf(w, "%-15s one of the above, chosen for you\n", "random")
 	case "backdrops":
 		for _, b := range theme.Backdrops() {
 			fmt.Fprintf(w, "%-10s %s\n", b.ID, b.Label)
 		}
+		fmt.Fprintf(w, "%-10s one of the above except none, chosen for you\n", "random")
 	case "fonts":
 		for _, f := range fonts.Registry {
 			fmt.Fprintf(w, "%-10s %s\n", f.ID, f.Label)

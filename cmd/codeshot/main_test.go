@@ -68,6 +68,29 @@ func TestSniffedPresetFromStdin(t *testing.T) {
 	}
 }
 
+func TestPickRandom(t *testing.T) {
+	ids := []string{"a", "b", "none"}
+	seen := map[string]bool{}
+	for i := 0; i < 200; i++ {
+		id := pickRandom(ids, "none")
+		if id == "none" {
+			t.Fatal("excluded id picked")
+		}
+		seen[id] = true
+	}
+	if len(seen) != 2 {
+		t.Errorf("only saw %v", seen)
+	}
+	out := filepath.Join(t.TempDir(), "r.svg")
+	var stdout bytes.Buffer
+	if err := run([]string{"--bg", "random", "--theme", "random", "--sample", "-o", out}, strings.NewReader(""), &stdout); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := os.Stat(out); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestListAndUsageErrors(t *testing.T) {
 	var out bytes.Buffer
 	if err := run([]string{"ignored.go", "--list", "presets"}, strings.NewReader(""), &out); err != nil {

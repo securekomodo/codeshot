@@ -41,6 +41,7 @@ codeshot main.go                              # → main-go.png, language guesse
 git diff | codeshot                           # piped input picks its own preset: a diff here
 cat query.sql | codeshot --lang sql           # or say what it is
 codeshot --theme nightOwl --bg tide app.tsx   # pick a theme and a backdrop
+codeshot --bg random app.tsx                  # or let it surprise you (the pick is printed to stderr)
 codeshot --copy notes.md                      # straight to the clipboard, ready to paste
 codeshot --preset git-diff --sample -o d.svg  # every preset ships a sample; .svg gets you vectors
 codeshot --list themes                        # themes, backdrops, fonts, languages, presets
@@ -166,6 +167,10 @@ tree -L 2 --noreport | codeshot --preset project-structure --bg ink
 # Big, centered, no window: an announcement card
 echo "🎉 v2.0 is out" | codeshot --preset dev-milestone --bg dusk
 
+# Tired of the same orange? Make every shot a surprise
+alias shot='codeshot --bg random --copy'
+shot main.go
+
 # Long lines wrap so the card stays at most 768px wide. Change the cap, fix the width, or wrap by column
 codeshot --max-width 1000 server.go
 codeshot --width 900 server.go
@@ -208,9 +213,10 @@ codeshot [flags] [FILE]        FILE omitted or "-" reads stdin; flags may come b
 --sample              render the preset's built-in sample instead of reading input
 --lang ID             language for the code presets (default: the preset's, or guessed
                       from the file name; --list languages)
---theme ID            dracula (default), nightOwl, oneDark, palenight, oceanicNext,
-                      shadesOfPurple, vsDark, okaidia, gruvboxDark, github, oneLight, nightOwlLight
---bg ID               ember (default), darkroom, tide, dusk, citrus, slate, mint, rose, ink, paper, none
+--theme ID            dracula (default), nightOwl, oneDark, palenight, oceanicNext, shadesOfPurple,
+                      vsDark, okaidia, gruvboxDark, github, oneLight, nightOwlLight, or random
+--bg ID               ember (default), darkroom, tide, dusk, citrus, slate, mint, rose, ink, paper, none,
+                      or random (never none; the choice is printed to stderr)
 --font ID|PATH        cascadia (default), jetbrains, fira, geist, ibm, source, space, or a .ttf/.otf file
 --title TEXT          window title (default: the preset's)
 --padding N           space around the card, 0..160 (default 48; 64 for dev-milestone)
