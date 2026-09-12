@@ -256,25 +256,31 @@ func (w *writer) chrome(c *layout.Chrome) {
 	}
 }
 
-// swirl draws three nested arches sweeping across the window, like a
-// desktop wallpaper showing through a translucent terminal. Each band is a
-// soft dark stroke with a faint light line along its upper edge, which
-// gives the embossed look.
+// swirlStrokes are three tapered strokes traced from the reference art in
+// a 520x360 box: each starts as a thin tip on the left and thickens toward
+// the right edge, where all three run off the box.
+var swirlStrokes = []string{
+	"M65,35 C210,38 380,55 520,80 L520,110 C380,80 210,50 65,37 Z",
+	"M15,176 C200,158 360,144 520,140 L520,166 C360,164 200,170 15,178 Z",
+	"M95,328 C230,250 400,190 520,176 L520,206 C400,222 230,272 95,332 Z",
+}
+
+// swirl places the strokes over the right half of the window: scaled so
+// they span from the middle to the right edge, and centered vertically.
 func (w *writer) swirl(L *layout.Layout) {
 	c := L.Card
-	at := func(fx, fy float64) string { return num(c.X+fx*c.W) + "," + num(c.Y+fy*c.H) }
-	arch := func(k, lift float64) string {
-		return "M" + at(-0.10+0.15*k, 0.36+0.30*k-lift) + " C" + at(0.25+0.10*k, 0.04+0.30*k-lift) + " " +
-			at(0.65+0.05*k, 0.05+0.32*k-lift) + " " + at(1.10, 0.30+0.28*k-lift)
+	const boxW, boxH = 520.0, 360.0
+	scale := c.W / 2 / boxW
+	if boxH*scale > c.H {
+		scale = c.H / boxH
 	}
-	for k := 0.0; k < 3; k++ {
-		for _, layer := range []struct{ width, alpha float64 }{{0.07, 0.045}, {0.038, 0.085}} {
-			w.printf(`<path d="%s" fill="none" stroke="#000000" stroke-opacity="%s" stroke-width="%s" stroke-linecap="round"/>`,
-				arch(k, 0), num(layer.alpha), num(layer.width*c.H))
-		}
-		w.printf(`<path d="%s" fill="none" stroke="#ffffff" stroke-opacity="0.035" stroke-width="%s" stroke-linecap="round"/>`,
-			arch(k, 0.024), num(0.012*c.H))
+	x0 := c.X + c.W - boxW*scale
+	y0 := c.Y + (c.H-boxH*scale)/2
+	w.printf(`<g transform="translate(%s,%s) scale(%s)" fill="#000000" fill-opacity="0.16">`, num(x0), num(y0), num(scale))
+	for _, d := range swirlStrokes {
+		w.printf(`<path d="%s"/>`, d)
 	}
+	w.printf(`</g>`)
 }
 
 // kaliChrome draws the Kali terminal's bars, controls and menu.

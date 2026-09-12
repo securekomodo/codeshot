@@ -139,16 +139,25 @@ func TestKaliChromeAndCursor(t *testing.T) {
 	if strings.Contains(out, `height="1" fill=`) {
 		t.Error("kali bars have no separator lines")
 	}
-	if strings.Contains(out, `stroke="#000000" stroke-opacity="0.045"`) {
+	if strings.Contains(out, `fill-opacity="0.16"`) {
 		t.Error("no swirl unless asked")
 	}
 	s.Watermark = settings.WatermarkSwirl
 	L, _ = layout.Compute(layout.Input{Settings: s, Theme: th, Backdrop: bd, Code: code, Title: inter, Lines: []highlight.Line{{{Text: "$"}}}})
-	if out := string(Render(L, Options{})); strings.Count(out, `stroke="#000000" stroke-opacity=`) != 6 || strings.Count(out, `stroke="#ffffff" stroke-opacity="0.035"`) != 3 {
-		t.Error("swirl should draw three arches, each two dark strokes and a light edge")
+	out = string(Render(L, Options{}))
+	gi := strings.Index(out, `<g transform="translate(`)
+	if gi < 0 {
+		t.Fatal("swirl group missing")
 	}
-	if out := string(Render(L, Options{})); strings.Index(out, `stroke="#000000" stroke-opacity=`) > strings.Index(out, `>Actions</text>`) {
+	group := out[gi : gi+strings.Index(out[gi:], "</g>")]
+	if strings.Count(group, `<path d="M`) != 3 || !strings.Contains(group, `fill="#000000" fill-opacity="0.16"`) {
+		t.Error("swirl should place the three traced strokes")
+	}
+	if strings.Index(out, `fill-opacity="0.16"`) > strings.Index(out, `>Actions</text>`) {
 		t.Error("swirl should be drawn under the menu text")
+	}
+	if !strings.Contains(group[:80], `scale(`) {
+		t.Error("swirl group should be scaled")
 	}
 	png1x1 := []byte("\x89PNG\r\n\x1a\n")
 	L, _ = layout.Compute(layout.Input{Settings: s, Theme: th, Backdrop: bd, Code: code, Title: inter, Lines: []highlight.Line{{{Text: "$"}}},
