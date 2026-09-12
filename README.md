@@ -6,6 +6,7 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/securekomodo/codeshot/actions/workflows/ci.yml"><img alt="build" src="https://github.com/securekomodo/codeshot/actions/workflows/ci.yml/badge.svg?branch=main"></a>
   <img alt="Go 1.25" src="https://img.shields.io/badge/Go-1.25-00ADD8?logo=go&logoColor=white">
   <img alt="single binary" src="https://img.shields.io/badge/deps-single%20binary-f4a259">
   <img alt="output" src="https://img.shields.io/badge/output-PNG%20%C2%B7%20SVG%20%C2%B7%20clipboard-5fb3a1">
