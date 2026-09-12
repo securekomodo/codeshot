@@ -1,0 +1,10 @@
+diff --git a/app/lib/export.ts b/app/lib/export.ts
+--- a/app/lib/export.ts
++++ b/app/lib/export.ts
+@@ -10,7 +10,8 @@ export async function exportPng(node, name) {
+   const url = await toPng(node, options);
+-  triggerDownload(url, name + ".png");
++  triggerDownload(url, `${name}.png`);
++  return url;
+ }
+ 

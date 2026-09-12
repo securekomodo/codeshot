@@ -13,12 +13,9 @@
 </p>
 
 <p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/hero-dark.png">
-    <img src="docs/hero-light.png" width="760" alt="A code snippet rendered as a framed image. This picture follows your GitHub theme: dark shows Dracula on the Ember backdrop, light shows GitHub Light on Paper.">
-  </picture>
+  <img src="docs/showcase.gif" width="760" alt="Ten cards in a row: JavaScript, Python, Go and Rust code, a terminal session, a git diff, a JSON response, SQL, a server log and test results, each in a different theme, backdrop and font">
   <br>
-  <sub>This hero follows your GitHub theme. Both versions were rendered by <code>codeshot</code> itself.</sub>
+  <sub>Every frame was rendered by <code>codeshot</code>. Ten languages and presets, ten themes, ten backdrops, seven fonts.</sub>
 </p>
 
 <table align="center">

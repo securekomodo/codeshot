@@ -7,9 +7,7 @@ trap 'rm -f codeshot' EXIT
 S=docs/snippet.js
 mkdir -p docs/themes docs/backdrops docs/presets docs/fonts
 
-# Hero: light and dark variants, swapped by <picture> in the README.
-./codeshot --preset code --sample --theme dracula --bg ember --title shoot.js -o docs/hero-dark.png >/dev/null
-./codeshot --preset code --sample --theme github --bg paper --title shoot.js -o docs/hero-light.png >/dev/null
+# The animated hero is built separately by tools/gen-showcase.sh (needs ffmpeg).
 
 # No backdrop at all (transparent PNG), and rounded backdrop corners.
 ./codeshot --preset code --sample --transparent --title shoot.js -o docs/transparent.png >/dev/null
