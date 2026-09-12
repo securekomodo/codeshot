@@ -68,7 +68,11 @@ func Build(s settings.Settings, src string) (*Card, error) {
 			return nil, fmt.Errorf("highlight: %w", err)
 		}
 	} else {
-		in.Lines = highlight.Colorize(s.Preset.Render, lines, s.Prompt, th)
+		promptColor := ""
+		if s.Chrome == settings.ChromeKali {
+			promptColor = layout.KaliBlue
+		}
+		in.Lines = highlight.Colorize(s.Preset.Render, lines, highlight.Options{Theme: th, Prompt: s.Prompt, PromptColor: promptColor})
 	}
 
 	L, err := layout.Compute(in)

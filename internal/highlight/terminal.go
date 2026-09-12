@@ -12,20 +12,47 @@ import (
 // lines get light-touch inline highlights (status words, numbers, hashes,
 // URLs, bracket tags, timestamps) on top of the theme's plain color.
 
-var promptChars = []rune{'$', '❯', '#', '~'}
+var (
+	promptChars = []rune{'$', '❯', '#', '~'}
+	// user@host:~$ and [user@host dir]$ style prompts, with or without a command.
+	userHostPrompts = []*regexp.Regexp{
+		regexp.MustCompile(`^([\w.-]+@[\w.-]+)([^\s$#]*[$#])( |$)`),
+		regexp.MustCompile(`^(\[[\w.-]+@[\w.-]+)([^\]\n]*\][$#])( |$)`),
+	}
+	userHost = regexp.MustCompile(`^(\[?[\w.-]+@[\w.-]+)(.*)$`)
+)
 
 func (c colorizer) terminal(l string) Line {
 	first, size := utf8.DecodeRuneInString(l)
 	for _, p := range promptChars {
-		if first == p && len(l) > size && l[size] == ' ' {
+		if first == p && (len(l) == size || l[size] == ' ') {
 			shown := c.prompt
 			if shown == "" {
 				shown = string(first)
 			}
-			return append(Line{colored(shown, Teal)}, c.command(l[size:])...)
+			return append(c.promptSpans(shown), c.command(l[size:])...)
+		}
+	}
+	for _, re := range userHostPrompts {
+		if m := re.FindStringSubmatchIndex(l); m != nil {
+			shown := l[:m[5]]
+			if c.prompt != "" {
+				shown = c.prompt
+			}
+			return append(c.promptSpans(shown), c.command(l[m[5]:])...)
 		}
 	}
 	return c.output(l)
+}
+
+// promptSpans colors a prompt: a user@host prefix gets the prompt color and
+// the rest (":~$") stays plain, as in a bash prompt; anything else is
+// colored whole.
+func (c colorizer) promptSpans(shown string) Line {
+	if m := userHost.FindStringSubmatch(shown); m != nil && m[2] != "" {
+		return Line{colored(m[1], c.promptColor), plain(m[2])}
+	}
+	return Line{colored(shown, c.promptColor)}
 }
 
 // Shell words that introduce another command after them.

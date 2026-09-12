@@ -14,7 +14,7 @@ func TestDefaults(t *testing.T) {
 	}
 	if s.Theme != "dracula" || s.Backdrop != "ember" || s.Font != "cascadia" || s.Language != "javascript" ||
 		s.Title != "snippet.js" || s.Padding != 48 || s.FontSize != 15 || !s.ShowChrome || !s.ShowLineNumbers ||
-		!s.Shadow || !s.ShowBackground || s.Prompt != "$" || s.Scale != 2 || s.Flags != "" {
+		!s.Shadow || !s.ShowBackground || s.Prompt != "" || s.Scale != 2 || s.Flags != "" {
 		t.Errorf("code defaults = %+v", s)
 	}
 	if err := s.Validate(); err != nil {
@@ -36,6 +36,10 @@ func TestDefaults(t *testing.T) {
 	x.Title = "deploy — zsh"
 	if x.DisplayTitle() != "deploy — zsh" {
 		t.Errorf("suffix doubled: %q", x.DisplayTitle())
+	}
+	x.Title, x.Chrome = "kali@kali: ~", ChromeKali
+	if x.DisplayTitle() != "kali@kali: ~" {
+		t.Errorf("kali style should not add the zsh suffix: %q", x.DisplayTitle())
 	}
 	api, _ := preset.Get("api")
 	a := Defaults(api)
@@ -60,6 +64,7 @@ func TestValidate(t *testing.T) {
 		func(s *Settings) { s.Method = "TRACE" },
 		func(s *Settings) { s.Status = "418" },
 		func(s *Settings) { s.MaxWidth = 100 },
+		func(s *Settings) { s.Chrome = "windows95" },
 		func(s *Settings) { s.MaxWidth = -1 },
 	}
 	for i, f := range bad {

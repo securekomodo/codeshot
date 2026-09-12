@@ -12,6 +12,7 @@ F=docs/showcase-frames; mkdir -p "$F"
 
 # n | label | preset | theme | backdrop | font | extra flags
 # Every sample is ten lines (the milestone six, balanced by padding and width).
+# Frames in the Kali window style have a taller title area, balanced the same way.
 while IFS='|' read -r n label preset th bg font extra; do
   [ -z "$n" ] && continue
   eval "extra_args=($extra)" # keeps quoted values such as --title "git log" together
@@ -19,20 +20,20 @@ while IFS='|' read -r n label preset th bg font extra; do
     --theme "$th" --bg "$bg" --font "$font" "${extra_args[@]}" -o "$F/$n.png" >/dev/null
 done <<'TABLE'
 01|Code Snippet|code|dracula|ember|cascadia|--title alerts.js
-02|Terminal Window|terminal|shadesOfPurple|slate|ibm|--title deploy
+02|Terminal Window|terminal|oneDark|slate|fira|--chrome kali --padding 37 --width 790 --title "kali@kali: ~" --cursor --prompt "kali@kali:~$"
 03|API Response|api|oneLight|paper|space|--no-badge --title reading.json
-04|Error & Log|error-log|vsDark|ink|cascadia|--title nimbus.log
+04|Error & Log|error-log|vsDark|ink|cascadia|--chrome kali --padding 37 --width 790 --title "kali@kali: ~"
 05|Database Schema|db-schema|nightOwl|tide|jetbrains|--title schema.sql
 06|SQL Query|sql-query|palenight|mint|geist|--title warmest.sql
 07|Regex|regex|okaidia|darkroom|fira|--flags "" --title patterns.re
 08|Git Commit|git-commit|gruvboxDark|rose|source|--title "git log"
 09|Project Structure|project-structure|oneDark|dusk|fira|--title nimbus
 10|Environment Variables|env-vars|oceanicNext|citrus|ibm|--title .env
-11|Terminal Session|terminal-session|github|mint|jetbrains|--prompt ❯ --title nimbus
+11|Terminal Session|terminal-session|nightOwl|darkroom|jetbrains|--chrome kali --padding 37 --width 790 --title "kali@kali: ~" --cursor --prompt "kali@kali:~$"
 12|Developer Milestone|dev-milestone|shadesOfPurple|dusk|space|--padding 69 --width 726
 13|HTTP Request|http-request|palenight|slate|source|--title alert.http
 14|Git Diff|git-diff|okaidia|rose|geist|--title notify.diff
-15|Test Results|test-results|nightOwl|citrus|cascadia|--title "make test"
+15|Test Results|test-results|gruvboxDark|citrus|ibm|--chrome kali --padding 37 --width 790 --title "kali@kali: ~"
 16|ASCII Tree|ascii-tree|oneLight|paper|space|--title pipeline
 17|Performance Metrics|perf-metrics|dracula|darkroom|jetbrains|--title lighthouse
 TABLE

@@ -17,29 +17,47 @@ import (
 
 // Fixed geometry of the card, in CSS px.
 const (
-	BarHeight     = 36   // px-4 py-3 around 12px dots
-	BarWithBadge  = 50.5 // py-3 around a 26.5px badge
-	DotRadius     = 6
-	DotGap        = 8
-	BarPadX       = 16
-	TitleInset    = 80  // minimum clearance on each side of the centered title (dots on the left)
-	MaxTitleRoom  = 400 // a longer title is truncated rather than widening the card
-	TitleSize     = 13
-	BadgeSize     = 11
-	BadgePadX     = 8
-	BadgeHeight   = 26.5
-	BadgeRadius   = 6
-	BadgeGap      = 8
-	CodePadX      = 16
-	CodePadTop    = 4
-	CodePadBottom = 20
-	GutterPad     = 16
-	MaxCardWidth  = 4096
-	MinCardWidth  = 120
+	BarHeight       = 36   // px-4 py-3 around 12px dots
+	BarWithBadge    = 50.5 // py-3 around a 26.5px badge
+	DotRadius       = 6
+	DotGap          = 8
+	BarPadX         = 16
+	TitleInset      = 80  // minimum clearance on each side of the centered title (dots on the left)
+	MaxTitleRoom    = 400 // a longer title is truncated rather than widening the card
+	TitleSize       = 13
+	BadgeSize       = 11
+	BadgePadX       = 8
+	BadgeHeight     = 26.5
+	BadgeRadius     = 6
+	BadgeGap        = 8
+	KaliTitleHeight = 30 // Kali: title bar
+	KaliMenuHeight  = 28 // Kali: "File Actions Edit View Help" bar
+	KaliButtonR     = 8
+	KaliButtonGap   = 25 // center to center
+	KaliButtonInset = 15 // close button center from the right edge
+	KaliMenuGap     = 18
+	CodePadX        = 16
+	CodePadTop      = 4
+	CodePadBottom   = 20
+	GutterPad       = 16
+	MaxCardWidth    = 4096
+	MinCardWidth    = 120
 )
 
 // DotColors are the macOS traffic lights.
 var DotColors = [3]string{"#ff5f57", "#febc2e", "#28c840"}
+
+// Kali window colors.
+const (
+	KaliBlue      = "#3c82f6" // close button and user@host in the prompt
+	KaliBar       = "#1e2129" // title and menu bars
+	KaliButton    = "#2c303a"
+	KaliButtonRim = "#5c6170"
+	KaliText      = "#e6e8eb"
+)
+
+// KaliMenu is the menu bar of the Kali terminal.
+var KaliMenu = []string{"File", "Actions", "Edit", "View", "Help"}
 
 // StatusLabels are the badge texts for the api preset's status codes.
 var StatusLabels = map[string]string{
@@ -104,12 +122,24 @@ type Label struct {
 	Text Text
 }
 
-// Chrome is the title bar.
+// Button is one Kali window control.
+type Button struct {
+	CX, CY float64
+	Kind   string // "minimize", "maximize" or "close"
+}
+
+// Chrome is the window's title area: for the macOS style a single bar with
+// traffic lights; for the Kali style a title bar with controls on the
+// right plus a menu bar.
 type Chrome struct {
-	Bar   Rect
-	Dots  [3]Dot
-	Title Text
-	Badge *Badge
+	Style   string
+	Bar     Rect // the whole area above the code
+	Dots    [3]Dot
+	Buttons []Button
+	Title   Text
+	Badge   *Badge
+	MenuBar Rect
+	Menu    []Text
 }
 
 // Layout is the fully positioned card at 1x.
@@ -125,6 +155,7 @@ type Layout struct {
 	Light          bool
 	Chrome         *Chrome // nil when the window chrome is hidden
 	Label          *Label  // nil when there is no caption
+	Cursor         *Rect   // block cursor after the last line, when asked for
 	Font           *fonts.Face
 	FontSize       float64
 	LineHeight     float64
@@ -211,6 +242,10 @@ func Compute(in Input) (*Layout, error) {
 	// The title is centered, so it needs the same clearance on both sides:
 	// enough for the dots on the left and the badge on the right.
 	inset := math.Max(TitleInset, BarPadX+badgeW+BadgeGap)
+	kali := s.ShowChrome && s.Chrome == settings.ChromeKali
+	if kali {
+		inset = 3*KaliButtonGap + KaliButtonInset // the controls sit on the right, the title is centered
+	}
 	cardW := math.Ceil(2*CodePadX + gutterW + maxW)
 	if s.Width > 0 {
 		cardW = float64(s.Width)
@@ -220,14 +255,26 @@ func Compute(in Input) (*Layout, error) {
 			titleW := math.Min(titleFont.Width(s.DisplayTitle(), TitleSize), MaxTitleRoom)
 			minW = math.Ceil(2*inset + titleW)
 		}
+		if kali {
+			menuW := float64(BarPadX)
+			for _, item := range KaliMenu {
+				menuW += titleFont.Width(item, TitleSize) + KaliMenuGap
+			}
+			minW = math.Max(minW, math.Ceil(menuW+BarPadX+badgeW))
+		}
 		cardW = math.Min(math.Max(cardW, minW), capW)
 	}
 
 	barH := 0.0
 	if s.ShowChrome {
-		barH = BarHeight
-		if badge != nil {
-			barH = BarWithBadge
+		switch s.Chrome {
+		case settings.ChromeKali:
+			barH = KaliTitleHeight + KaliMenuHeight
+		default:
+			barH = BarHeight
+			if badge != nil {
+				barH = BarWithBadge
+			}
 		}
 	}
 	// Whole pixels keep the PNG size exact at every scale (the badge bar is 50.5px).
@@ -247,7 +294,9 @@ func Compute(in Input) (*Layout, error) {
 		Font: in.Code, FontSize: size, LineHeight: lh, Plain: plain, Center: milestone,
 	}
 
-	if s.ShowChrome {
+	if s.ShowChrome && s.Chrome == settings.ChromeKali {
+		L.Chrome = buildKaliChrome(L.Card, s.DisplayTitle(), titleFont, badge)
+	} else if s.ShowChrome {
 		L.Chrome = buildChrome(L.Card, barH, s.DisplayTitle(), titleFont, badge, inset, light)
 	}
 	if s.Label != "" {
@@ -273,7 +322,57 @@ func Compute(in Input) (*Layout, error) {
 			})
 		}
 	}
+	if s.Cursor && len(L.Rows) > 0 {
+		last := L.Rows[len(L.Rows)-1]
+		x := last.X
+		for _, sp := range last.Spans {
+			x += in.Code.Width(sp.Text, size)
+		}
+		if milestone {
+			x = last.X + (x-last.X)/2
+		}
+		// Sit in the next cell with some air, as a terminal's cursor does.
+		L.Cursor = &Rect{x + cell/2, last.Y - asc, cell, asc + desc}
+	}
 	return L, nil
+}
+
+// buildKaliChrome lays out the Kali terminal's title bar (controls on the
+// right, title centered) and menu bar.
+func buildKaliChrome(card Rect, title string, font *fonts.Face, badge *Badge) *Chrome {
+	c := &Chrome{Style: settings.ChromeKali, Bar: Rect{card.X, card.Y, card.W, KaliTitleHeight + KaliMenuHeight}}
+	c.MenuBar = Rect{card.X, card.Y + KaliTitleHeight, card.W, KaliMenuHeight}
+	cy := card.Y + KaliTitleHeight/2
+	for i, kind := range []string{"minimize", "maximize", "close"} {
+		c.Buttons = append(c.Buttons, Button{CX: card.X + card.W - KaliButtonInset - float64(2-i)*KaliButtonGap, CY: cy, Kind: kind})
+	}
+	asc, desc := font.Metrics(TitleSize)
+	inset := 3*KaliButtonGap + KaliButtonInset
+	c.Title = Text{
+		X: card.X + card.W/2, Y: cy + (asc-desc)/2, Anchor: "middle",
+		Size: TitleSize, Font: font, Weight: 500,
+		Text: truncate(title, font, TitleSize, card.W-2*float64(inset)), Color: theme.Color{Hex: KaliText, Alpha: 0.92},
+	}
+	my := c.MenuBar.Y + KaliMenuHeight/2 + (asc-desc)/2
+	x := card.X + BarPadX
+	for _, item := range KaliMenu {
+		c.Menu = append(c.Menu, Text{X: x, Y: my, Anchor: "start", Size: TitleSize, Font: font, Text: item,
+			Color: theme.Color{Hex: KaliText, Alpha: 0.9}})
+		x += font.Width(item, TitleSize) + KaliMenuGap
+	}
+	if badge != nil {
+		badge.Box.X = card.X + card.W - BarPadX - badge.Box.W
+		badge.Box.Y = c.MenuBar.Y + (KaliMenuHeight-badge.Box.H)/2
+		bx := badge.Box.X + 1 + BadgePadX
+		basc, bdesc := badge.Texts[0].Font.Metrics(BadgeSize)
+		for i := range badge.Texts {
+			t := &badge.Texts[i]
+			t.X, t.Y = bx, c.MenuBar.Y+KaliMenuHeight/2+(basc-bdesc)/2
+			bx += t.Font.Width(t.Text, BadgeSize) + BadgeGap
+		}
+		c.Badge = badge
+	}
+	return c
 }
 
 // labelBand is the extra space above the window that holds a caption of
@@ -341,7 +440,7 @@ func buildBadge(s settings.Settings, font *fonts.Face, light bool) *Badge {
 }
 
 func buildChrome(card Rect, barH float64, title string, font *fonts.Face, badge *Badge, inset float64, light bool) *Chrome {
-	c := &Chrome{Bar: Rect{card.X, card.Y, card.W, barH}}
+	c := &Chrome{Style: settings.ChromeMac, Bar: Rect{card.X, card.Y, card.W, barH}}
 	cy := card.Y + barH/2
 	for i := range c.Dots {
 		c.Dots[i] = Dot{CX: card.X + BarPadX + DotRadius + float64(i)*(2*DotRadius+DotGap), CY: cy, Color: DotColors[i]}

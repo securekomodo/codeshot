@@ -15,7 +15,7 @@
 <p align="center">
   <img src="docs/showcase.gif" width="760" alt="Seventeen captioned cards in a row, one per preset: code snippet, terminal window, API response, error and log, database schema, SQL query, regex, git commit, project structure, environment variables, terminal session, developer milestone, HTTP request, git diff, test results, ASCII tree and performance metrics, each in its own theme, backdrop and font">
   <br>
-  <sub>Every frame was rendered by <code>codeshot</code>: all seventeen presets, twelve themes, ten backdrops, seven fonts.</sub>
+  <sub>Every frame was rendered by <code>codeshot</code>: all seventeen presets, both window styles, twelve themes, ten backdrops, seven fonts.</sub>
 </p>
 
 ## Install
@@ -46,6 +46,7 @@ Move the binary somewhere on your `PATH` and you are done. Pipe anything in (`gi
 <p align="center">
   <a href="#pick-a-theme">Themes</a> ·
   <a href="#pick-a-backdrop">Backdrops</a> ·
+  <a href="#pick-a-window">Windows</a> ·
   <a href="#pick-a-font">Fonts</a> ·
   <a href="#presets-for-the-things-developers-actually-screenshot">Presets</a> ·
   <a href="#recipes">Recipes</a> ·
@@ -89,6 +90,15 @@ Move the binary somewhere on your `PATH` and you are done. Pipe anything in (`gi
 <td align="center" valign="top"><a href="docs/backdrops/paper.png"><img src="docs/backdrops/paper.png" width="220" alt="paper"></a><br><sub><code>--bg paper</code></sub></td>
 <td align="center" valign="top"><a href="docs/backdrops/none.png"><img src="docs/backdrops/none.png" width="220" alt="none"></a><br><sub><code>--bg none</code></sub></td>
 </tr></table>
+
+## Pick a window
+
+<table align="center"><tr>
+<td align="center" valign="top"><a href="docs/window-mac.png"><img src="docs/window-mac.png" width="380" alt="macOS window style"></a><br><sub><code>--chrome mac</code> (default)</sub></td>
+<td align="center" valign="top"><a href="docs/window-kali.png"><img src="docs/window-kali.png" width="380" alt="Kali Linux terminal style"></a><br><sub><code>--chrome kali --cursor</code></sub></td>
+</tr></table>
+
+The Kali style brings the title bar with its controls on the right, the menu bar, a tighter corner radius and Kali blue in the prompt. Prompts written as <code>user@host:~$</code> are recognized as they are; <code>--prompt 'kali@kali:~$'</code> turns plain <code>$</code> prompts into them.
 
 ## Or no backdrop at all
 
@@ -156,6 +166,9 @@ git diff | codeshot --title "fix: retry on 429" --copy
 
 # A whole shell session, with commands and output highlighted
 script -q /dev/null | tee session.txt; codeshot --preset terminal session.txt
+
+# The same session as a Kali Linux terminal, cursor waiting on the last line
+codeshot --chrome kali --cursor --prompt 'kali@kali:~$' session.txt
 
 # The last ten commits, styled
 git log -10 | codeshot --title "git log" -o log.png
@@ -244,9 +257,11 @@ codeshot [flags] [FILE]        FILE omitted or "-" reads stdin; flags may come b
 --radius PX           corner radius of the backdrop; the PNG's corners become transparent (default 0)
 --card-radius PX      corner radius of the window (default 12)
 --no-chrome           hide the title bar
+--chrome STYLE        window style: mac (default) or kali, the Kali Linux terminal with its menu bar
+--cursor              draw a block cursor after the last line
 --no-shadow           no drop shadow
 --line-numbers BOOL   default on for the code and log presets
---prompt STR          terminal presets: prompt character ($ ❯ # ~; empty keeps the original)
+--prompt STR          terminal presets: replace the prompt ($, ❯, or a full kali@kali:~$); default keeps the content's own
 --method M            api preset badge: GET POST PUT PATCH DELETE
 --status N            api preset badge: 200 201 204 400 401 403 404 422 500
 --no-badge            api preset: hide the badge

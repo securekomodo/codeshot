@@ -14,6 +14,7 @@ import (
 	"codeshot/internal/fonts"
 	"codeshot/internal/highlight"
 	"codeshot/internal/layout"
+	"codeshot/internal/settings"
 	"codeshot/internal/theme"
 )
 
@@ -73,6 +74,9 @@ func Render(L *layout.Layout, o Options) []byte {
 	}
 	for _, r := range L.Rows {
 		w.row(L, r)
+	}
+	if c := L.Cursor; c != nil {
+		w.printf(`<rect x="%s" y="%s" width="%s" height="%s"%s/>`, num(c.X), num(c.Y), num(c.W), num(c.H), fill(theme.Color{Hex: L.Plain.Hex, Alpha: 0.85}))
 	}
 	w.printf(`</g>`)
 	if clipped {
@@ -219,6 +223,10 @@ func roundedRectPath(x, y, w, h, r float64) string {
 }
 
 func (w *writer) chrome(c *layout.Chrome) {
+	if c.Style == settings.ChromeKali {
+		w.kaliChrome(c)
+		return
+	}
 	for _, d := range c.Dots {
 		w.printf(`<circle cx="%s" cy="%s" r="%s" fill="%s"/>`, num(d.CX), num(d.CY), num(layout.DotRadius), d.Color)
 		w.printf(`<circle cx="%s" cy="%s" r="%s" fill="none" stroke="#000000" stroke-opacity="0.18" stroke-width="0.5"/>`,
@@ -227,6 +235,38 @@ func (w *writer) chrome(c *layout.Chrome) {
 	w.text(c.Title)
 	if b := c.Badge; b != nil {
 		// A CSS border sits inside the box; an SVG stroke straddles the edge.
+		w.printf(`<rect x="%s" y="%s" width="%s" height="%s" rx="%s" fill="none" stroke="%s"%s stroke-width="1"/>`,
+			num(b.Box.X+0.5), num(b.Box.Y+0.5), num(b.Box.W-1), num(b.Box.H-1), num(layout.BadgeRadius),
+			b.Border.Hex, opacityAttr("stroke-opacity", b.Border.Alpha))
+		for _, t := range b.Texts {
+			w.text(t)
+		}
+	}
+}
+
+// kaliChrome draws the Kali terminal's bars, controls and menu.
+func (w *writer) kaliChrome(c *layout.Chrome) {
+	w.printf(`<rect x="%s" y="%s" width="%s" height="%s" fill="%s"/>`,
+		num(c.Bar.X), num(c.Bar.Y), num(c.Bar.W), num(c.Bar.H), layout.KaliBar)
+	w.printf(`<rect x="%s" y="%s" width="%s" height="1" fill="#ffffff" fill-opacity="0.06"/>`,
+		num(c.MenuBar.X), num(c.MenuBar.Y), num(c.MenuBar.W))
+	for _, b := range c.Buttons {
+		r := float64(layout.KaliButtonR)
+		if b.Kind == "close" {
+			w.printf(`<circle cx="%s" cy="%s" r="%s" fill="%s"/>`, num(b.CX), num(b.CY), num(r), layout.KaliBlue)
+			d := r * 0.38
+			w.printf(`<path d="M%s,%s L%s,%s M%s,%s L%s,%s" stroke="#ffffff" stroke-width="1.6" stroke-linecap="round"/>`,
+				num(b.CX-d), num(b.CY-d), num(b.CX+d), num(b.CY+d), num(b.CX+d), num(b.CY-d), num(b.CX-d), num(b.CY+d))
+			continue
+		}
+		w.printf(`<circle cx="%s" cy="%s" r="%s" fill="%s" stroke="%s" stroke-width="1"/>`,
+			num(b.CX), num(b.CY), num(r-0.5), layout.KaliButton, layout.KaliButtonRim)
+	}
+	w.text(c.Title)
+	for _, m := range c.Menu {
+		w.text(m)
+	}
+	if b := c.Badge; b != nil {
 		w.printf(`<rect x="%s" y="%s" width="%s" height="%s" rx="%s" fill="none" stroke="%s"%s stroke-width="1"/>`,
 			num(b.Box.X+0.5), num(b.Box.Y+0.5), num(b.Box.W-1), num(b.Box.H-1), num(layout.BadgeRadius),
 			b.Border.Hex, opacityAttr("stroke-opacity", b.Border.Alpha))

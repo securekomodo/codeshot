@@ -64,7 +64,7 @@ func TestColorizers(t *testing.T) {
 	}
 	dr, _ := theme.Get("dracula")
 	for _, tc := range cases {
-		got := Colorize(tc.mode, []string{tc.in}, "", dr)[0]
+		got := Colorize(tc.mode, []string{tc.in}, Options{Theme: dr})[0]
 		if !reflect.DeepEqual(got, tc.want) {
 			t.Errorf("%s %q:\n got %+v\nwant %+v", tc.mode, tc.in, got, tc.want)
 		}
@@ -78,7 +78,7 @@ func TestTerminalCommands(t *testing.T) {
 		`$ git commit -m "Add post" && git push`,
 		"❯ FOO=1 sudo make -j4 # build",
 		"$npm",
-	}, "", dr)
+	}, Options{Theme: dr})
 	want0 := Line{
 		{Text: "$", Color: Teal}, {Text: " "}, pal.span(pal.Function, "git"), {Text: " "}, {Text: "commit"}, {Text: " "},
 		pal.span(pal.Keyword, "-m"), {Text: " "}, pal.span(pal.String, `"Add post"`), {Text: " "},
@@ -102,6 +102,39 @@ func TestTerminalCommands(t *testing.T) {
 	}
 }
 
+func TestUserHostPrompts(t *testing.T) {
+	dr, _ := theme.Get("dracula")
+	pal := NewPalette(dr)
+	got := Colorize("terminal", []string{
+		"kali@kali:~$ echo hello world",
+		"hello world",
+		"kali@kali:~$",
+		"[root@box /etc]# ls -la",
+		"$ ls",
+	}, Options{Theme: dr, PromptColor: "#3c82f6"})
+	if got[0][0].Text != "kali@kali" || got[0][0].Color != "#3c82f6" || got[0][1].Text != ":~$" || got[0][1].Color != "" ||
+		got[0][3].Text != "echo" || got[0][3].Color != pal.Function.Color {
+		t.Errorf("kali prompt: %+v", got[0])
+	}
+	if got[1][0].Color != "" {
+		t.Errorf("output should be plain: %+v", got[1])
+	}
+	if len(got[2]) != 2 || got[2][0].Text != "kali@kali" || got[2][1].Text != ":~$" {
+		t.Errorf("bare prompt: %+v", got[2])
+	}
+	if got[3][0].Text != "[root@box" || got[3][0].Color != "#3c82f6" || got[3][1].Text != " /etc]#" {
+		t.Errorf("bracket prompt: %+v", got[3])
+	}
+	if got[4][0].Text != "$" || got[4][0].Color != "#3c82f6" {
+		t.Errorf("prompt color applies to $ too: %+v", got[4])
+	}
+	// --prompt can replace "$" with a full user@host prompt.
+	rep := Colorize("terminal", []string{"$ ls", "$"}, Options{Theme: dr, Prompt: "kali@kali:~$"})
+	if rep[0][0].Text != "kali@kali" || rep[0][0].Color != Teal || rep[0][1].Text != ":~$" || rep[1][1].Text != ":~$" {
+		t.Errorf("prompt replacement: %+v %+v", rep[0], rep[1])
+	}
+}
+
 func TestTerminalOutput(t *testing.T) {
 	dr, _ := theme.Get("dracula")
 	pal := NewPalette(dr)
@@ -116,7 +149,7 @@ func TestTerminalOutput(t *testing.T) {
 		"✔ Project name … my-shots",
 		"error: something failed",
 		"",
-	}, "", dr)
+	}, Options{Theme: dr})
 	find := func(i int, text string) (Span, bool) {
 		for _, sp := range out[i] {
 			if sp.Text == text {
@@ -151,7 +184,7 @@ func TestTerminalOutput(t *testing.T) {
 		t.Errorf("empty line: %+v", out[9])
 	}
 	gh, _ := theme.Get("github")
-	light := Colorize("terminal", []string{"12:00:00 x"}, "", gh)
+	light := Colorize("terminal", []string{"12:00:00 x"}, Options{Theme: gh})
 	if light[0][0].Color != "#000000" || light[0][0].Opacity != 0.5 {
 		t.Errorf("light dim: %+v", light[0])
 	}

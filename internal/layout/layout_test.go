@@ -111,6 +111,9 @@ func TestComputeCode(t *testing.T) {
 }
 
 func TestComputeBadgeWidthMilestone(t *testing.T) {
+	code, _ := fonts.Load("jetbrains")
+	cell := code.Advance('0', 15)
+	asc, desc := code.Metrics(15)
 	in, _ := fixture(t, "api", `{"a": 1}`)
 	L, _ := Compute(in)
 	if L.Chrome.Badge == nil || L.Chrome.Bar.H != BarWithBadge || len(L.Chrome.Badge.Texts) != 2 ||
@@ -173,6 +176,27 @@ func TestComputeBadgeWidthMilestone(t *testing.T) {
 	L, _ = Compute(in)
 	if L.Label.Box.H <= small.H || L.Label.Box.W <= small.W || L.Card.Y <= 48+band {
 		t.Errorf("bigger label size should grow the pill and band: %+v", L.Label.Box)
+	}
+
+	in, s = fixture(t, "terminal", "$ ls", "a", "$")
+	s.Chrome, s.Cursor, s.Title = settings.ChromeKali, true, "kali@kali: ~"
+	in.Settings = s
+	L, _ = Compute(in)
+	c := L.Chrome
+	if c == nil || c.Style != settings.ChromeKali || c.Bar.H != KaliTitleHeight+KaliMenuHeight || len(c.Buttons) != 3 || len(c.Menu) != 5 {
+		t.Fatalf("kali chrome: %+v", c)
+	}
+	if c.Buttons[2].Kind != "close" || c.Buttons[2].CX != L.Card.X+L.Card.W-KaliButtonInset || c.Buttons[0].CX >= c.Buttons[1].CX {
+		t.Errorf("kali buttons: %+v", c.Buttons)
+	}
+	if c.Title.Text != "kali@kali: ~" || c.Title.Anchor != "middle" || c.Menu[0].Text != "File" || c.Menu[4].Text != "Help" {
+		t.Errorf("kali title/menu: %+v %+v", c.Title, c.Menu)
+	}
+	if L.Cursor == nil || L.Cursor.Y >= L.Rows[2].Y || L.Cursor.X <= L.Rows[2].X || L.Cursor.W != cell {
+		t.Errorf("cursor: %+v row %+v", L.Cursor, L.Rows[2])
+	}
+	if L.Rows[0].Y != L.Card.Y+KaliTitleHeight+KaliMenuHeight+CodePadTop+(24-(asc+desc))/2+asc {
+		t.Errorf("code starts below both bars: %v", L.Rows[0].Y)
 	}
 
 	in, _ = fixture(t, "dev-milestone", "🎉 done")

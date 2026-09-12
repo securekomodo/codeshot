@@ -32,10 +32,12 @@ type Settings struct {
 
 	ShowBackground  bool
 	ShowChrome      bool
+	Chrome          string // window style: ChromeMac or ChromeKali
+	Cursor          bool   // draw a block cursor after the last line
 	ShowLineNumbers bool
 	Shadow          bool
 
-	Prompt    string // terminal renderers: replaces the prompt character ("" keeps the original)
+	Prompt    string // terminal renderers: replaces the prompt ("" keeps whatever the content has)
 	Method    string // api preset badge
 	Status    string // api preset badge
 	ShowBadge bool
@@ -46,6 +48,15 @@ type Settings struct {
 	Width    int // fixed card width in px; 0 = fit content
 	MaxWidth int // wrap so the card is at most this wide; 0 = unlimited
 }
+
+// Window styles.
+const (
+	ChromeMac  = "mac"  // macOS title bar with traffic lights
+	ChromeKali = "kali" // Kali Linux terminal: title bar, menu bar, controls on the right
+)
+
+// Chromes lists the window styles.
+var Chromes = []string{ChromeMac, ChromeKali}
 
 // DefaultLabelSize is the caption's font size in px.
 const DefaultLabelSize = 14
@@ -78,9 +89,9 @@ func Defaults(p preset.Preset) Settings {
 		FontSize:        15,
 		ShowBackground:  true,
 		ShowChrome:      p.Render != preset.Milestone,
+		Chrome:          ChromeMac,
 		ShowLineNumbers: p.SupportsLineNumbers(),
 		Shadow:          true,
-		Prompt:          "$",
 		Method:          "GET",
 		Status:          "200",
 		ShowBadge:       true,
@@ -94,9 +105,6 @@ func Defaults(p preset.Preset) Settings {
 	}
 	if p.Render == preset.Milestone {
 		s.Padding = 64
-	}
-	if p.Prompt != "" {
-		s.Prompt = p.Prompt
 	}
 	if p.Key == "regex" {
 		s.Flags = "gi"
@@ -118,6 +126,9 @@ func (s *Settings) Validate() error {
 	}
 	if s.FontSize < 11 || s.FontSize > 28 {
 		return fmt.Errorf("font size %d out of range 11..28", s.FontSize)
+	}
+	if !contains(Chromes, s.Chrome) {
+		return fmt.Errorf("unknown window style %q (one of %s)", s.Chrome, strings.Join(Chromes, ", "))
 	}
 	if s.LabelSize < 8 || s.LabelSize > 64 {
 		return fmt.Errorf("label size %d out of range 8..64", s.LabelSize)
@@ -147,9 +158,9 @@ func (s *Settings) Validate() error {
 }
 
 // DisplayTitle is the title-bar text: the title, with " — zsh" appended for
-// the terminal presets unless it already ends that way.
+// the terminal presets in the macOS style unless it already ends that way.
 func (s Settings) DisplayTitle() string {
-	if s.Preset.IsTerminal() && !strings.HasSuffix(s.Title, " — zsh") && s.Title != "zsh" {
+	if s.Chrome == ChromeMac && s.Preset.IsTerminal() && !strings.HasSuffix(s.Title, " — zsh") && s.Title != "zsh" {
 		return s.Title + " — zsh"
 	}
 	return s.Title

@@ -9,12 +9,20 @@ import (
 	"codeshot/internal/theme"
 )
 
+// Options tune the colorizers.
+type Options struct {
+	Theme       *theme.Theme
+	Prompt      string // terminal modes: replaces the prompt ("" keeps the original)
+	PromptColor string // terminal modes: color of the prompt ("" = teal)
+}
+
 // Colorize applies the per-line colorizer for a non-Prism render mode.
-// prompt replaces the prompt character in terminal modes ("" keeps the
-// original); the theme supplies the palette.
-func Colorize(mode string, lines []string, prompt string, th *theme.Theme) []Line {
-	pal := NewPalette(th)
-	c := colorizer{prompt: prompt, dim: pal.Dim, pal: pal}
+func Colorize(mode string, lines []string, o Options) []Line {
+	pal := NewPalette(o.Theme)
+	c := colorizer{prompt: o.Prompt, promptColor: o.PromptColor, dim: pal.Dim, pal: pal}
+	if c.promptColor == "" {
+		c.promptColor = Teal
+	}
 	out := make([]Line, len(lines))
 	for i, l := range lines {
 		switch mode {
@@ -44,9 +52,10 @@ func Colorize(mode string, lines []string, prompt string, th *theme.Theme) []Lin
 }
 
 type colorizer struct {
-	prompt string
-	dim    Span
-	pal    Palette
+	prompt      string
+	promptColor string
+	dim         Span
+	pal         Palette
 }
 
 func plain(s string) Span                { return Span{Text: s} }
