@@ -248,10 +248,6 @@ func (w *writer) chrome(c *layout.Chrome) {
 func (w *writer) kaliChrome(c *layout.Chrome) {
 	w.printf(`<rect x="%s" y="%s" width="%s" height="%s" fill="%s"/>`,
 		num(c.Bar.X), num(c.Bar.Y), num(c.Bar.W), num(c.Bar.H), layout.KaliBar)
-	// Border lines under the title bar and under the menu bar.
-	for _, y := range []float64{c.MenuBar.Y, c.MenuBar.Y + c.MenuBar.H} {
-		w.printf(`<rect x="%s" y="%s" width="%s" height="1" fill="%s"/>`, num(c.Bar.X), num(y-1), num(c.Bar.W), layout.KaliSeparator)
-	}
 	if ic := c.Icon; ic != nil {
 		// A small terminal window: frame, title strip, and a ">_" prompt.
 		w.printf(`<rect x="%s" y="%s" width="%s" height="%s" rx="1.5" fill="none" stroke="%s" stroke-width="1.2"/>`,
@@ -269,8 +265,7 @@ func (w *writer) kaliChrome(c *layout.Chrome) {
 				num(b.CX-d), num(b.CY-d), num(b.CX+d), num(b.CY+d), num(b.CX+d), num(b.CY-d), num(b.CX-d), num(b.CY+d), layout.KaliBar)
 			continue
 		}
-		w.printf(`<circle cx="%s" cy="%s" r="%s" fill="%s" stroke="%s" stroke-width="1"/>`,
-			num(b.CX), num(b.CY), num(r-0.5), layout.KaliButton, layout.KaliButtonRim)
+		w.printf(`<circle cx="%s" cy="%s" r="%s" fill="%s"/>`, num(b.CX), num(b.CY), num(r), layout.KaliButton)
 	}
 	w.text(c.Title)
 	for _, m := range c.Menu {

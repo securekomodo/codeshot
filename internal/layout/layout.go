@@ -52,12 +52,10 @@ var DotColors = [3]string{"#ff5f57", "#febc2e", "#28c840"}
 
 // Kali window colors (the Kali-Dark window theme and terminal scheme).
 const (
-	KaliBlue      = highlight.KaliBlue // close button; user and host in the prompt
-	KaliBar       = "#1e2028"          // title and menu bars
-	KaliSeparator = "#3a3e49"          // lines between the bars and the terminal
-	KaliButton    = "#3a3e49"          // minimize and maximize
-	KaliButtonRim = "#767b87"
-	KaliText      = "#e6e6e6"
+	KaliBlue   = highlight.KaliBlue // close button; user and host in the prompt
+	KaliBar    = "#1e2028"          // title and menu bars, one continuous surface
+	KaliButton = "#40444f"          // minimize and maximize: plain discs, no rim
+	KaliText   = "#e6e6e6"
 )
 
 // KaliMenu is the menu bar of the Kali terminal.
