@@ -50,9 +50,10 @@ func main() {
 type usageError struct{ error }
 
 type options struct {
-	output, presetKey, lang, themeID, bg, font, title, label, prompt, method, status, flags, lineNumbers, list, chrome string
-	padding, fontSize, scale, wrap, width, maxWidth, radius, cardRadius, labelSize                                     int
-	sample, noBG, noChrome, noShadow, noBadge, embedFonts, copy, showVersion, cursor                                   bool
+	output, presetKey, lang, themeID, bg, font, title, label, prompt, method, status, flags, lineNumbers, list, chrome, watermark string
+	watermarkOpacity                                                                                                              float64
+	padding, fontSize, scale, wrap, width, maxWidth, radius, cardRadius, labelSize                                                int
+	sample, noBG, noChrome, noShadow, noBadge, embedFonts, copy, showVersion, cursor                                              bool
 }
 
 func run(args []string, stdin io.Reader, stdout io.Writer) error {
@@ -80,6 +81,8 @@ func run(args []string, stdin io.Reader, stdout io.Writer) error {
 	fs.BoolVar(&o.noChrome, "no-chrome", false, "hide the window title bar")
 	fs.StringVar(&o.chrome, "chrome", settings.ChromeMac, "window style: mac (traffic lights) or kali (Kali Linux terminal: menu bar, two-line prompt, Kali colors)")
 	fs.BoolVar(&o.cursor, "cursor", false, "draw a block cursor after the last line")
+	fs.StringVar(&o.watermark, "watermark", "", "overlay on the window: swirl (sweeping bands, default with --chrome kali), none, or a PNG/JPEG/SVG file")
+	fs.Float64Var(&o.watermarkOpacity, "watermark-opacity", 0.12, "opacity of an image watermark, 0..1")
 	fs.BoolVar(&o.noShadow, "no-shadow", false, "no drop shadow")
 	fs.StringVar(&o.lineNumbers, "line-numbers", "", "true or false (default: on for code and log presets)")
 	fs.StringVar(&o.prompt, "prompt", "", "terminal presets: replace the prompt ($, ❯, or user@host:~$; with --chrome kali this sets who the prompt shows)")
@@ -161,6 +164,12 @@ func run(args []string, stdin io.Reader, stdout io.Writer) error {
 	s.ShowBackground = !o.noBG
 	s.ShowChrome = s.ShowChrome && !o.noChrome
 	s.Chrome, s.Cursor = o.chrome, o.cursor
+	s.WatermarkOpacity = o.watermarkOpacity
+	if seen["watermark"] {
+		s.Watermark = o.watermark
+	} else if s.Chrome == settings.ChromeKali {
+		s.Watermark = settings.WatermarkSwirl
+	}
 	if s.Chrome == settings.ChromeKali {
 		// Kali's own terminal scheme and a Linux terminal font, unless overridden.
 		if !seen["theme"] {

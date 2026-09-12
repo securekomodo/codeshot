@@ -4,7 +4,17 @@
 package render
 
 import (
+	"bytes"
 	"fmt"
+	"image"
+	_ "image/gif"
+	_ "image/jpeg"
+	_ "image/png"
+	"os"
+	"path/filepath"
+	"regexp"
+	"strconv"
+	"strings"
 
 	"codeshot/internal/fonts"
 	"codeshot/internal/highlight"
@@ -75,11 +85,55 @@ func Build(s settings.Settings, src string) (*Card, error) {
 		in.Lines = highlight.Colorize(s.Preset.Render, lines, opts)
 	}
 
+	if s.Watermark != "" && s.Watermark != settings.WatermarkNone && s.Watermark != settings.WatermarkSwirl {
+		img, err := loadImage(s.Watermark, s.WatermarkOpacity)
+		if err != nil {
+			return nil, err
+		}
+		in.Image = img
+	}
+
 	L, err := layout.Compute(in)
 	if err != nil {
 		return nil, err
 	}
 	return &Card{Layout: L, faces: faces}, nil
+}
+
+// loadImage reads a PNG, JPEG or SVG file for use as a watermark.
+func loadImage(path string, opacity float64) (*layout.WatermarkImage, error) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return nil, fmt.Errorf("watermark: %w", err)
+	}
+	img := &layout.WatermarkImage{Data: data, Opacity: opacity}
+	switch strings.ToLower(filepath.Ext(path)) {
+	case ".svg":
+		img.Mime = "image/svg+xml"
+		img.W, img.H = svgSize(data)
+	default:
+		cfg, format, err := image.DecodeConfig(bytes.NewReader(data))
+		if err != nil {
+			return nil, fmt.Errorf("watermark %s: %w (PNG, JPEG or SVG)", path, err)
+		}
+		img.Mime, img.W, img.H = "image/"+format, cfg.Width, cfg.Height
+	}
+	return img, nil
+}
+
+var svgDims = regexp.MustCompile(`(?s)<svg[^>]*?\s(width|height)="([0-9.]+)[a-z]*"[^>]*?\s(width|height)="([0-9.]+)[a-z]*"`)
+
+// svgSize reads an SVG's width and height attributes (1:1 if absent).
+func svgSize(data []byte) (int, int) {
+	if m := svgDims.FindSubmatch(data); m != nil {
+		a, _ := strconv.ParseFloat(string(m[2]), 64)
+		b, _ := strconv.ParseFloat(string(m[4]), 64)
+		if string(m[1]) == "width" {
+			return int(a), int(b)
+		}
+		return int(b), int(a)
+	}
+	return 1, 1
 }
 
 // SVG serializes the card at 1x. With embed set, the code and title fonts

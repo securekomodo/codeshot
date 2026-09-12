@@ -66,6 +66,18 @@ func Render(L *layout.Layout, o Options) []byte {
 	w.printf(`<g clip-path="url(#card)">`)
 	w.printf(`<rect x="%s" y="%s" width="%s" height="%s"%s/>`,
 		num(L.Card.X), num(L.Card.Y), num(L.Card.W), num(L.Card.H), fill(L.Window))
+	if c := L.Chrome; c != nil && c.Style == settings.ChromeKali {
+		// The bar surface goes under the swirl, as the window is translucent.
+		w.printf(`<rect x="%s" y="%s" width="%s" height="%s" fill="%s"/>`,
+			num(c.Bar.X), num(c.Bar.Y), num(c.Bar.W), num(c.Bar.H), layout.KaliBar)
+	}
+	if L.Swirl {
+		w.swirl(L)
+	}
+	if m := L.Watermark; m != nil {
+		w.printf(`<image x="%s" y="%s" width="%s" height="%s" opacity="%s" preserveAspectRatio="xMidYMid meet" href="data:%s;base64,%s"/>`,
+			num(m.Box.X), num(m.Box.Y), num(m.Box.W), num(m.Box.H), num(m.Opacity), m.Mime, base64.StdEncoding.EncodeToString(m.Data))
+	}
 	if L.Chrome != nil {
 		w.chrome(L.Chrome)
 	}
@@ -244,10 +256,29 @@ func (w *writer) chrome(c *layout.Chrome) {
 	}
 }
 
+// swirl draws three nested arches sweeping across the window, like a
+// desktop wallpaper showing through a translucent terminal. Each band is a
+// soft dark stroke with a faint light line along its upper edge, which
+// gives the embossed look.
+func (w *writer) swirl(L *layout.Layout) {
+	c := L.Card
+	at := func(fx, fy float64) string { return num(c.X+fx*c.W) + "," + num(c.Y+fy*c.H) }
+	arch := func(k, lift float64) string {
+		return "M" + at(-0.10+0.15*k, 0.36+0.30*k-lift) + " C" + at(0.25+0.10*k, 0.04+0.30*k-lift) + " " +
+			at(0.65+0.05*k, 0.05+0.32*k-lift) + " " + at(1.10, 0.30+0.28*k-lift)
+	}
+	for k := 0.0; k < 3; k++ {
+		for _, layer := range []struct{ width, alpha float64 }{{0.07, 0.045}, {0.038, 0.085}} {
+			w.printf(`<path d="%s" fill="none" stroke="#000000" stroke-opacity="%s" stroke-width="%s" stroke-linecap="round"/>`,
+				arch(k, 0), num(layer.alpha), num(layer.width*c.H))
+		}
+		w.printf(`<path d="%s" fill="none" stroke="#ffffff" stroke-opacity="0.035" stroke-width="%s" stroke-linecap="round"/>`,
+			arch(k, 0.024), num(0.012*c.H))
+	}
+}
+
 // kaliChrome draws the Kali terminal's bars, controls and menu.
 func (w *writer) kaliChrome(c *layout.Chrome) {
-	w.printf(`<rect x="%s" y="%s" width="%s" height="%s" fill="%s"/>`,
-		num(c.Bar.X), num(c.Bar.Y), num(c.Bar.W), num(c.Bar.H), layout.KaliBar)
 	if ic := c.Icon; ic != nil {
 		// A small terminal window: frame, title strip, and a ">_" prompt.
 		w.printf(`<rect x="%s" y="%s" width="%s" height="%s" rx="1.5" fill="none" stroke="%s" stroke-width="1.2"/>`,
@@ -261,11 +292,12 @@ func (w *writer) kaliChrome(c *layout.Chrome) {
 		if b.Kind == "close" {
 			w.printf(`<circle cx="%s" cy="%s" r="%s" fill="%s"/>`, num(b.CX), num(b.CY), num(r), layout.KaliBlue)
 			d := r * 0.4
-			w.printf(`<path d="M%s,%s L%s,%s M%s,%s L%s,%s" stroke="%s" stroke-width="1.5" stroke-linecap="round"/>`,
-				num(b.CX-d), num(b.CY-d), num(b.CX+d), num(b.CY+d), num(b.CX+d), num(b.CY-d), num(b.CX-d), num(b.CY+d), layout.KaliBar)
+			w.printf(`<path d="M%s,%s L%s,%s M%s,%s L%s,%s" stroke="%s" stroke-width="2" stroke-linecap="round"/>`,
+				num(b.CX-d), num(b.CY-d), num(b.CX+d), num(b.CY+d), num(b.CX+d), num(b.CY-d), num(b.CX-d), num(b.CY+d), layout.KaliButtonEdge)
 			continue
 		}
-		w.printf(`<circle cx="%s" cy="%s" r="%s" fill="%s"/>`, num(b.CX), num(b.CY), num(r), layout.KaliButton)
+		w.printf(`<circle cx="%s" cy="%s" r="%s" fill="%s" stroke="%s" stroke-width="1"/>`,
+			num(b.CX), num(b.CY), num(r-0.5), layout.KaliButton, layout.KaliButtonEdge)
 	}
 	w.text(c.Title)
 	for _, m := range c.Menu {

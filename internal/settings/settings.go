@@ -27,6 +27,9 @@ type Settings struct {
 	Radius     int // corner radius of the backdrop (the image itself), 0 = square
 	CardRadius int // corner radius of the window
 
+	Watermark        string  // WatermarkNone, WatermarkSwirl, or a path to an image
+	WatermarkOpacity float64 // for image watermarks
+
 	Label     string // caption pill drawn above the window ("" = none)
 	LabelSize int    // caption font size in px
 
@@ -48,6 +51,12 @@ type Settings struct {
 	Width    int // fixed card width in px; 0 = fit content
 	MaxWidth int // wrap so the card is at most this wide; 0 = unlimited
 }
+
+// Watermark choices besides an image path.
+const (
+	WatermarkNone  = "none"
+	WatermarkSwirl = "swirl" // sweeping dark bands, like a wallpaper showing through
+)
 
 // Window styles.
 const (
@@ -79,26 +88,28 @@ var (
 // Defaults returns the studio's initial state for a preset.
 func Defaults(p preset.Preset) Settings {
 	s := Settings{
-		Preset:          p,
-		Theme:           theme.Default,
-		Backdrop:        theme.DefaultBackdrop,
-		Font:            fonts.Default,
-		Language:        p.Language,
-		Title:           p.Title,
-		Padding:         48,
-		FontSize:        15,
-		ShowBackground:  true,
-		ShowChrome:      p.Render != preset.Milestone,
-		Chrome:          ChromeMac,
-		ShowLineNumbers: p.SupportsLineNumbers(),
-		Shadow:          true,
-		Method:          "GET",
-		Status:          "200",
-		ShowBadge:       true,
-		Scale:           2,
-		MaxWidth:        DefaultMaxWidth,
-		CardRadius:      DefaultCardRadius,
-		LabelSize:       DefaultLabelSize,
+		Preset:           p,
+		Theme:            theme.Default,
+		Backdrop:         theme.DefaultBackdrop,
+		Font:             fonts.Default,
+		Language:         p.Language,
+		Title:            p.Title,
+		Padding:          48,
+		FontSize:         15,
+		ShowBackground:   true,
+		ShowChrome:       p.Render != preset.Milestone,
+		Chrome:           ChromeMac,
+		Watermark:        WatermarkNone,
+		WatermarkOpacity: 0.12,
+		ShowLineNumbers:  p.SupportsLineNumbers(),
+		Shadow:           true,
+		Method:           "GET",
+		Status:           "200",
+		ShowBadge:        true,
+		Scale:            2,
+		MaxWidth:         DefaultMaxWidth,
+		CardRadius:       DefaultCardRadius,
+		LabelSize:        DefaultLabelSize,
 	}
 	if s.Language == "" {
 		s.Language = "javascript"
@@ -129,6 +140,9 @@ func (s *Settings) Validate() error {
 	}
 	if !contains(Chromes, s.Chrome) {
 		return fmt.Errorf("unknown window style %q (one of %s)", s.Chrome, strings.Join(Chromes, ", "))
+	}
+	if s.WatermarkOpacity < 0 || s.WatermarkOpacity > 1 {
+		return fmt.Errorf("watermark opacity %v out of range 0..1", s.WatermarkOpacity)
 	}
 	if s.LabelSize < 8 || s.LabelSize > 64 {
 		return fmt.Errorf("label size %d out of range 8..64", s.LabelSize)

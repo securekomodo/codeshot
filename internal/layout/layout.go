@@ -30,8 +30,8 @@ const (
 	BadgeHeight     = 26.5
 	BadgeRadius     = 6
 	BadgeGap        = 8
-	KaliTitleHeight = 28 // Kali: title bar
-	KaliMenuHeight  = 26 // Kali: "File Actions Edit View Help" bar
+	KaliTitleHeight = 26 // Kali: title bar
+	KaliMenuHeight  = 22 // Kali: "File Actions Edit View Help" bar
 	KaliTitleSize   = 12
 	KaliMenuSize    = 13
 	KaliButtonR     = 7.5
@@ -52,10 +52,11 @@ var DotColors = [3]string{"#ff5f57", "#febc2e", "#28c840"}
 
 // Kali window colors (the Kali-Dark window theme and terminal scheme).
 const (
-	KaliBlue   = highlight.KaliBlue // close button; user and host in the prompt
-	KaliBar    = "#1e2028"          // title and menu bars, one continuous surface
-	KaliButton = "#40444f"          // minimize and maximize: plain discs, no rim
-	KaliText   = "#e6e6e6"
+	KaliBlue       = highlight.KaliBlue // close button; user and host in the prompt
+	KaliBar        = "#1e2028"          // title and menu bars, one continuous surface
+	KaliButton     = "#40444f"          // minimize and maximize discs
+	KaliButtonEdge = "#111318"          // thin black outline around each disc, and the x on close
+	KaliText       = "#e6e6e6"
 )
 
 // KaliMenu is the menu bar of the Kali terminal.
@@ -83,6 +84,7 @@ type Input struct {
 	Title    *fonts.Face      // title bar text (Inter); nil falls back to Code
 	Badge    *fonts.Face      // badge text (JetBrains Mono); nil falls back to Code
 	Lines    []highlight.Line // one per logical line, tabs already expanded
+	Image    *WatermarkImage  // optional overlay
 }
 
 // Rect is an axis-aligned box.
@@ -116,6 +118,22 @@ type Badge struct {
 	Box    Rect
 	Border theme.Color
 	Texts  []Text
+}
+
+// WatermarkImage is a user-supplied image to overlay on the window.
+type WatermarkImage struct {
+	Data    []byte
+	Mime    string // image/png, image/jpeg, image/svg+xml
+	W, H    int    // pixel size, for the aspect ratio
+	Opacity float64
+}
+
+// Watermark is the placed overlay: an image box inside the window.
+type Watermark struct {
+	Box     Rect
+	Data    []byte
+	Mime    string
+	Opacity float64
 }
 
 // Label is the caption pill above the window.
@@ -159,6 +177,8 @@ type Layout struct {
 	Chrome         *Chrome // nil when the window chrome is hidden
 	Label          *Label  // nil when there is no caption
 	Cursor         *Rect   // block cursor after the last line, when asked for
+	Swirl          bool    // draw the built-in sweeping bands behind the content
+	Watermark      *Watermark
 	Font           *fonts.Face
 	FontSize       float64
 	LineHeight     float64
@@ -328,6 +348,18 @@ func Compute(in Input) (*Layout, error) {
 				Size: size, Font: in.Code, Text: strconv.Itoa(r.number),
 				Color: theme.Color{Hex: gutterHex, Alpha: gutterOp},
 			})
+		}
+	}
+	L.Swirl = s.Watermark == settings.WatermarkSwirl
+	if in.Image != nil && in.Image.W > 0 && in.Image.H > 0 {
+		// Bottom-right of the window body, about two thirds of its height,
+		// bleeding a little off the right edge the way a wallpaper peeks in.
+		bodyY := L.Card.Y + barH
+		h := math.Min((L.Card.H-barH)*0.7, L.Card.W*0.7)
+		w := h * float64(in.Image.W) / float64(in.Image.H)
+		L.Watermark = &Watermark{
+			Box:  Rect{L.Card.X + L.Card.W - w*0.85, bodyY + (L.Card.H - barH) - h*0.95, w, h},
+			Data: in.Image.Data, Mime: in.Image.Mime, Opacity: in.Image.Opacity,
 		}
 	}
 	if s.Cursor && len(L.Rows) > 0 {

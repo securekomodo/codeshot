@@ -100,7 +100,7 @@ Move the binary somewhere on your `PATH` and you are done. Pipe anything in (`gi
 <td align="center" valign="top"><a href="docs/window-kali.png"><img src="docs/window-kali.png" width="380" alt="Kali Linux terminal style"></a><br><sub><code>--chrome kali --cursor</code></sub></td>
 </tr></table>
 
-The Kali style is the Kali Linux terminal as it ships: the title bar with the terminal icon and the controls on the right, the menu bar, terminal line spacing, Kali's own color scheme (<code>--theme kali</code>) in DejaVu Sans Mono (<code>--font dejavu</code>), and the two-line zsh prompt with the <code>㉿</code>. Plain <code>$</code> prompts and <code>user@host:~$</code> prompts are rewritten into it, a blank line separates commands, and sessions captured on Kali pass through untouched. <code>--prompt root@kali:/root#</code> changes who the prompt shows. Every other theme, backdrop and font still applies on top.
+The Kali style is the Kali Linux terminal as it ships: the title bar with the terminal icon and the controls on the right, the menu bar, terminal line spacing, Kali's own color scheme (<code>--theme kali</code>) in DejaVu Sans Mono (<code>--font dejavu</code>), and the two-line zsh prompt with the <code>㉿</code>. Plain <code>$</code> prompts and <code>user@host:~$</code> prompts are rewritten into it, a blank line separates commands, and sessions captured on Kali pass through untouched. <code>--prompt root@kali:/root#</code> changes who the prompt shows. The faint sweeping bands in the body are the built-in <code>swirl</code> watermark; <code>--watermark none</code> removes them and <code>--watermark path/to/image.png</code> overlays your own wallpaper or logo instead. Every other theme, backdrop and font still applies on top.
 
 ## Or no backdrop at all
 
@@ -173,6 +173,7 @@ script -q /dev/null | tee session.txt; codeshot --preset terminal session.txt
 # The same session as a Kali Linux terminal, two-line prompt, cursor waiting on the last line
 codeshot --chrome kali --cursor session.txt
 codeshot --chrome kali --prompt root@kali:/root# session.txt   # as root
+codeshot --chrome kali --watermark ~/Pictures/wallpaper.png session.txt   # your own wallpaper showing through
 
 # The last ten commits, styled
 git log -10 | codeshot --title "git log" -o log.png
@@ -263,6 +264,9 @@ codeshot [flags] [FILE]        FILE omitted or "-" reads stdin; flags may come b
 --no-chrome           hide the title bar
 --chrome STYLE        window style: mac (default) or kali (Kali terminal: menu bar, two-line prompt, Kali colors)
 --cursor              draw a block cursor after the last line
+--watermark X         overlay on the window: swirl (sweeping bands, on by default with --chrome kali),
+                      none, or a PNG/JPEG/SVG file placed faintly in the bottom-right corner
+--watermark-opacity N opacity of an image watermark, 0..1 (default 0.12)
 --no-shadow           no drop shadow
 --line-numbers BOOL   default on for the code and log presets
 --prompt STR          terminal presets: replace the prompt ($, ❯, or user@host:~$); with --chrome kali, who the prompt shows
