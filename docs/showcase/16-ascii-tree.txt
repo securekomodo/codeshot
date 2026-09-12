@@ -1,0 +1,10 @@
+Decision
+├── Cache hit?
+│   ├── yes → serve cached
+│   └── no
+│       ├── Auth valid?
+│       │   ├── yes → render
+│       │   └── no → 401
+│       └── Rate limited?
+│           └── yes → 429
+└── Done

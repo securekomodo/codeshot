@@ -1,0 +1,10 @@
+codeshot/
+├── cmd/
+│   └── codeshot/
+│       └── main.go
+├── internal/
+│   ├── highlight/
+│   ├── layout/
+│   └── render/
+├── docs/
+└── README.md

@@ -155,6 +155,18 @@ func TestComputeBadgeWidthMilestone(t *testing.T) {
 		t.Errorf("fixed width wins: card %v rows %d", L.Card.W, len(L.Rows))
 	}
 
+	in, s = fixture(t, "code", "x")
+	s.Label = "JavaScript"
+	in.Settings = s
+	L, _ = Compute(in)
+	if L.Label == nil || L.Card.Y != 48+LabelBand || L.H != L.Card.H+96+LabelBand ||
+		L.Label.Text.Text != "JavaScript" || L.Label.Box.X+L.Label.Box.W/2 != L.Card.X+L.Card.W/2 {
+		t.Errorf("label layout: card %+v label %+v", L.Card, L.Label)
+	}
+	if L.Label.Box.Y+L.Label.Box.H > L.Card.Y {
+		t.Error("label overlaps the card")
+	}
+
 	in, _ = fixture(t, "dev-milestone", "🎉 done")
 	L, _ = Compute(in)
 	if L.Chrome != nil || L.FontSize != 26 || L.LineHeight != 39 || !L.Center || L.Card.X != 64 || len(L.Gutter) != 0 {

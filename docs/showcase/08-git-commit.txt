@@ -1,0 +1,10 @@
+commit 8c41f2e0aa93b7d5e1c4f6a2b8d9e0f1a2b3c4d5
+Author: Ada Lovelace <ada@example.com>
+Date:   Wed Jun 25 10:04:00 2026 +0000
+
+    feat: export SVG alongside PNG
+
++ app/lib/export.ts   |  48 ++++++++++++
++ app/lib/svg.ts      | 112 ++++++++++++++++++++++
+- app/lib/legacy.ts   |  30 ------------
+  3 files changed, 160 insertions(+), 30 deletions(-)

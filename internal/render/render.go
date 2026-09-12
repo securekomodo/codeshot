@@ -41,13 +41,15 @@ func Build(s settings.Settings, src string) (*Card, error) {
 	code.SetFallbacks(fallbacks...)
 	faces := append([]*fonts.Face{code}, fallbacks...)
 	in := layout.Input{Settings: s, Theme: th, Backdrop: bd, Code: code}
-	if s.ShowChrome {
+	if s.ShowChrome || s.Label != "" {
 		inter, err := fonts.Inter()
 		if err != nil {
 			return nil, err
 		}
 		in.Title = inter
 		faces = append(faces, inter)
+	}
+	if s.ShowChrome {
 		if s.Badge() != settings.BadgeNone && code.ID != "jetbrains" {
 			// The badge always uses the UI mono font, JetBrains Mono.
 			mono, err := fonts.Load("jetbrains")

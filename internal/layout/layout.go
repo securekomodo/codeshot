@@ -30,6 +30,10 @@ const (
 	BadgeHeight   = 26.5
 	BadgeRadius   = 6
 	BadgeGap      = 8
+	LabelBand     = 44 // extra space above the window when a label is shown
+	LabelSize     = 12
+	LabelHeight   = 26
+	LabelPadX     = 12
 	CodePadX      = 16
 	CodePadTop    = 4
 	CodePadBottom = 20
@@ -98,6 +102,12 @@ type Badge struct {
 	Texts  []Text
 }
 
+// Label is the caption pill above the window.
+type Label struct {
+	Box  Rect
+	Text Text
+}
+
 // Chrome is the title bar.
 type Chrome struct {
 	Bar   Rect
@@ -118,6 +128,7 @@ type Layout struct {
 	Shadow         bool
 	Light          bool
 	Chrome         *Chrome // nil when the window chrome is hidden
+	Label          *Label  // nil when there is no caption
 	Font           *fonts.Face
 	FontSize       float64
 	LineHeight     float64
@@ -226,11 +237,15 @@ func Compute(in Input) (*Layout, error) {
 	// Whole pixels keep the PNG size exact at every scale (the badge bar is 50.5px).
 	cardH := math.Ceil(barH + CodePadTop + float64(len(rows))*lh + CodePadBottom)
 	pad := float64(s.Padding)
+	band := 0.0
+	if s.Label != "" {
+		band = LabelBand
+	}
 
 	L := &Layout{
-		W: cardW + 2*pad, H: cardH + 2*pad,
+		W: cardW + 2*pad, H: cardH + 2*pad + band,
 		Backdrop: in.Backdrop, ShowBackground: s.ShowBackground && !in.Backdrop.Transparent,
-		Card:   Rect{pad, pad, cardW, cardH},
+		Card:   Rect{pad, pad + band, cardW, cardH},
 		Radius: float64(s.Radius), CardRadius: float64(s.CardRadius),
 		Window: window, Shadow: s.Shadow, Light: light,
 		Font: in.Code, FontSize: size, LineHeight: lh, Plain: plain, Center: milestone,
@@ -238,6 +253,9 @@ func Compute(in Input) (*Layout, error) {
 
 	if s.ShowChrome {
 		L.Chrome = buildChrome(L.Card, barH, s.DisplayTitle(), titleFont, badge, inset, light)
+	}
+	if s.Label != "" {
+		L.Label = buildLabel(L.Card, s.Label, titleFont)
 	}
 
 	asc, desc := in.Code.Metrics(size)
@@ -260,6 +278,19 @@ func Compute(in Input) (*Layout, error) {
 		}
 	}
 	return L, nil
+}
+
+// buildLabel centers a caption pill in the band above the window.
+func buildLabel(card Rect, text string, font *fonts.Face) *Label {
+	text = truncate(text, font, LabelSize, card.W-2*LabelPadX)
+	w := math.Ceil(font.Width(text, LabelSize) + 2*LabelPadX)
+	cx, cy := card.X+card.W/2, card.Y-LabelBand/2
+	asc, desc := font.Metrics(LabelSize)
+	return &Label{
+		Box: Rect{cx - w/2, cy - LabelHeight/2, w, LabelHeight},
+		Text: Text{X: cx, Y: cy + (asc-desc)/2, Anchor: "middle", Size: LabelSize, Font: font, Weight: 500,
+			Text: text, Color: theme.Color{Hex: "#ffffff", Alpha: 0.92}},
+	}
 }
 
 func buildBadge(s settings.Settings, font *fonts.Face, light bool) *Badge {

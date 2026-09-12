@@ -50,9 +50,9 @@ func main() {
 type usageError struct{ error }
 
 type options struct {
-	output, presetKey, lang, themeID, bg, font, title, prompt, method, status, flags, lineNumbers, list string
-	padding, fontSize, scale, wrap, width, maxWidth, radius, cardRadius                                 int
-	sample, noBG, noChrome, noShadow, noBadge, embedFonts, copy, showVersion                            bool
+	output, presetKey, lang, themeID, bg, font, title, label, prompt, method, status, flags, lineNumbers, list string
+	padding, fontSize, scale, wrap, width, maxWidth, radius, cardRadius                                        int
+	sample, noBG, noChrome, noShadow, noBadge, embedFonts, copy, showVersion                                   bool
 }
 
 func run(args []string, stdin io.Reader, stdout io.Writer) error {
@@ -69,6 +69,7 @@ func run(args []string, stdin io.Reader, stdout io.Writer) error {
 	fs.StringVar(&o.bg, "backdrop", theme.DefaultBackdrop, "alias for --bg")
 	fs.StringVar(&o.font, "font", fonts.Default, "code font: "+strings.Join(fonts.IDs(), ", ")+", or a path to a .ttf/.otf file")
 	fs.StringVar(&o.title, "title", "", "window title (default: preset's)")
+	fs.StringVar(&o.label, "label", "", "caption drawn in a pill above the window")
 	fs.IntVar(&o.padding, "padding", -1, "space around the card in px, 0..160 (default 48, 64 for dev-milestone)")
 	fs.IntVar(&o.fontSize, "font-size", 15, "code font size in px, 11..28")
 	fs.IntVar(&o.radius, "radius", 0, "corner radius of the backdrop in px (the PNG gets transparent corners)")
@@ -153,6 +154,7 @@ func run(args []string, stdin io.Reader, stdout io.Writer) error {
 	}
 	s.FontSize = o.fontSize
 	s.Radius, s.CardRadius = o.radius, o.cardRadius
+	s.Label = o.label
 	s.ShowBackground = !o.noBG
 	s.ShowChrome = s.ShowChrome && !o.noChrome
 	s.Shadow = !o.noShadow

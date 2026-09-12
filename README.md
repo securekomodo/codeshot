@@ -13,9 +13,9 @@
 </p>
 
 <p align="center">
-  <img src="docs/showcase.gif" width="760" alt="Ten cards in a row: JavaScript, Python, Go and Rust code, a terminal session, a git diff, a JSON response, SQL, a server log and test results, each in a different theme, backdrop and font">
+  <img src="docs/showcase.gif" width="760" alt="Seventeen captioned cards in a row, one per preset: code snippet, terminal window, API response, error and log, database schema, SQL query, regex, git commit, project structure, environment variables, terminal session, developer milestone, HTTP request, git diff, test results, ASCII tree and performance metrics, each in its own theme, backdrop and font">
   <br>
-  <sub>Every frame was rendered by <code>codeshot</code>. Ten languages and presets, ten themes, ten backdrops, seven fonts.</sub>
+  <sub>Every frame was rendered by <code>codeshot</code>: all seventeen presets, twelve themes, ten backdrops, seven fonts.</sub>
 </p>
 
 <table align="center">
@@ -177,6 +177,9 @@ tree -L 2 --noreport | codeshot --preset project-structure --bg ink
 # Big, centered, no window: an announcement card
 echo "🎉 v2.0 is out" | codeshot --preset dev-milestone --bg dusk
 
+# Caption it (this is how the frames of the animation above are labeled)
+codeshot --label "Before" old.go && codeshot --label "After" new.go
+
 # No backdrop: just the window and its shadow, on whatever you paste it into
 codeshot --transparent --copy main.go
 
@@ -235,6 +238,7 @@ codeshot [flags] [FILE]        FILE omitted or "-" reads stdin; flags may come b
                       or random (never none; the choice is printed to stderr)
 --font ID|PATH        cascadia (default), jetbrains, fira, geist, ibm, source, space, or a .ttf/.otf file
 --title TEXT          window title (default: the preset's)
+--label TEXT          caption drawn in a pill above the window
 --padding N           space around the card, 0..160 (default 48; 64 for dev-milestone)
 --font-size N         11..28 (default 15)
 --transparent         no backdrop: a transparent PNG with the window and its shadow (alias --no-bg, same as --bg none)

@@ -27,6 +27,8 @@ type Settings struct {
 	Radius     int // corner radius of the backdrop (the image itself), 0 = square
 	CardRadius int // corner radius of the window
 
+	Label string // caption pill drawn above the window ("" = none)
+
 	ShowBackground  bool
 	ShowChrome      bool
 	ShowLineNumbers bool
