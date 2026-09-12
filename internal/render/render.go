@@ -50,6 +50,11 @@ func Build(s settings.Settings, src string) (*Card, error) {
 	}
 	code.SetFallbacks(fallbacks...)
 	faces := append([]*fonts.Face{code}, fallbacks...)
+	if bold, err := fonts.Bold(code.ID); err != nil {
+		return nil, err
+	} else if bold != nil {
+		faces = append(faces, bold)
+	}
 	in := layout.Input{Settings: s, Theme: th, Backdrop: bd, Code: code}
 	if s.ShowChrome || s.Label != "" {
 		inter, err := fonts.Inter()

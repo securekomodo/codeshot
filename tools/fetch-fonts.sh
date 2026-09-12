@@ -66,6 +66,9 @@ mkdir -p assets/fonts/dejavu
 unz assets/fonts/dejavu/DejaVuSansMono.ttf \
   https://github.com/dejavu-fonts/dejavu-fonts/releases/download/version_2_37/dejavu-fonts-ttf-2.37.zip \
   dejavu-fonts-ttf-2.37/ttf/DejaVuSansMono.ttf
+unz assets/fonts/dejavu/DejaVuSansMono-Bold.ttf \
+  https://github.com/dejavu-fonts/dejavu-fonts/releases/download/version_2_37/dejavu-fonts-ttf-2.37.zip \
+  dejavu-fonts-ttf-2.37/ttf/DejaVuSansMono-Bold.ttf
 curl -fsSL --retry 3 -o "$TMP/z.zip" https://github.com/dejavu-fonts/dejavu-fonts/releases/download/version_2_37/dejavu-fonts-ttf-2.37.zip \
   && unzip -p "$TMP/z.zip" dejavu-fonts-ttf-2.37/LICENSE > assets/fonts/dejavu/LICENSE
 lic emoji notoemoji

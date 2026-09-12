@@ -66,11 +66,6 @@ func Render(L *layout.Layout, o Options) []byte {
 	w.printf(`<g clip-path="url(#card)">`)
 	w.printf(`<rect x="%s" y="%s" width="%s" height="%s"%s/>`,
 		num(L.Card.X), num(L.Card.Y), num(L.Card.W), num(L.Card.H), fill(L.Window))
-	if c := L.Chrome; c != nil && c.Style == settings.ChromeKali {
-		// The bar surface goes under the swirl, as the window is translucent.
-		w.printf(`<rect x="%s" y="%s" width="%s" height="%s" fill="%s"/>`,
-			num(c.Bar.X), num(c.Bar.Y), num(c.Bar.W), num(c.Bar.H), layout.KaliBar)
-	}
 	if L.Swirl {
 		w.swirl(L)
 	}
@@ -88,7 +83,7 @@ func Render(L *layout.Layout, o Options) []byte {
 		w.row(L, r)
 	}
 	if c := L.Cursor; c != nil {
-		w.printf(`<rect x="%s" y="%s" width="%s" height="%s"%s/>`, num(c.X), num(c.Y), num(c.W), num(c.H), fill(theme.Color{Hex: L.Plain.Hex, Alpha: 0.85}))
+		w.printf(`<rect x="%s" y="%s" width="%s" height="%s"%s/>`, num(c.X), num(c.Y), num(c.W), num(c.H), fill(theme.Color{Hex: L.Plain.Hex, Alpha: 0.95}))
 	}
 	w.printf(`</g>`)
 	if clipped {
@@ -256,35 +251,36 @@ func (w *writer) chrome(c *layout.Chrome) {
 	}
 }
 
-// swirlStrokes are three tapered strokes traced from the reference art in
-// a 520x360 box: each starts as a thin tip on the left and thickens toward
-// the right edge, where all three run off the box.
-var swirlStrokes = []string{
-	"M65,35 C210,38 380,55 520,80 L520,110 C380,80 210,50 65,37 Z",
-	"M15,176 C200,158 360,144 520,140 L520,166 C360,164 200,170 15,178 Z",
-	"M95,328 C230,250 400,190 520,176 L520,206 C400,222 230,272 95,332 Z",
+// swirlStrokes are the three tapered strokes of the wallpaper as they show
+// through the window, in fractions of the window's width and height: thin
+// tips toward the middle, thickening to where they run off the right edge.
+var swirlStrokes = [][][2]float64{
+	// each: tip, upper control 1, upper control 2, exit top, exit bottom, lower control 1, lower control 2
+	{{0.32, 0.068}, {0.52, 0.048}, {0.80, 0.120}, {1.02, 0.212}, {1.02, 0.262}, {0.80, 0.162}, {0.52, 0.070}},
+	{{0.445, 0.425}, {0.62, 0.345}, {0.82, 0.322}, {1.02, 0.372}, {1.02, 0.420}, {0.82, 0.366}, {0.62, 0.375}},
+	{{0.545, 0.750}, {0.70, 0.640}, {0.85, 0.575}, {1.02, 0.535}, {1.02, 0.590}, {0.85, 0.625}, {0.70, 0.680}},
 }
 
-// swirl places the strokes over the right half of the window: scaled so
-// they span from the middle to the right edge, and centered vertically.
+// swirl draws the strokes over the window, softened by a faint wider edge.
 func (w *writer) swirl(L *layout.Layout) {
 	c := L.Card
-	const boxW, boxH = 520.0, 360.0
-	scale := c.W / 2 / boxW
-	if boxH*scale > c.H {
-		scale = c.H / boxH
+	at := func(p [2]float64) string { return num(c.X+p[0]*c.W) + "," + num(c.Y+p[1]*c.H) }
+	for _, s := range swirlStrokes {
+		d := "M" + at(s[0]) + " C" + at(s[1]) + " " + at(s[2]) + " " + at(s[3]) + " L" + at(s[4]) +
+			" C" + at(s[5]) + " " + at(s[6]) + " " + at(s[0]) + " Z"
+		// Soft edges: two faint outlines outside the band before the band itself.
+		w.printf(`<path d="%s" fill="none" stroke="#000000" stroke-opacity="0.03" stroke-width="%s" stroke-linejoin="round"/>`, d, num(c.H*0.024))
+		w.printf(`<path d="%s" fill="none" stroke="#000000" stroke-opacity="0.05" stroke-width="%s" stroke-linejoin="round"/>`, d, num(c.H*0.012))
+		w.printf(`<path d="%s" fill="#000000" fill-opacity="0.16" stroke="#000000" stroke-opacity="0.05" stroke-width="%s" stroke-linejoin="round"/>`,
+			d, num(c.H*0.004))
 	}
-	x0 := c.X + c.W - boxW*scale
-	y0 := c.Y + (c.H-boxH*scale)/2
-	w.printf(`<g transform="translate(%s,%s) scale(%s)" fill="#000000" fill-opacity="0.16">`, num(x0), num(y0), num(scale))
-	for _, d := range swirlStrokes {
-		w.printf(`<path d="%s"/>`, d)
-	}
-	w.printf(`</g>`)
 }
 
 // kaliChrome draws the Kali terminal's bars, controls and menu.
 func (w *writer) kaliChrome(c *layout.Chrome) {
+	// The bars share the window's color; a faint line closes the menu bar.
+	w.printf(`<rect x="%s" y="%s" width="%s" height="1" fill="#ffffff" fill-opacity="0.07"/>`,
+		num(c.MenuBar.X), num(c.MenuBar.Y+c.MenuBar.H-1), num(c.MenuBar.W))
 	if ic := c.Icon; ic != nil {
 		// A small terminal window: frame, title strip, and a ">_" prompt.
 		w.printf(`<rect x="%s" y="%s" width="%s" height="%s" rx="1.5" fill="none" stroke="%s" stroke-width="1.2"/>`,

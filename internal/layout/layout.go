@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"math"
 	"strconv"
+	"strings"
 
 	"codeshot/internal/fonts"
 	"codeshot/internal/highlight"
@@ -30,15 +31,17 @@ const (
 	BadgeHeight     = 26.5
 	BadgeRadius     = 6
 	BadgeGap        = 8
-	KaliTitleHeight = 26 // Kali: title bar
-	KaliMenuHeight  = 22 // Kali: "File Actions Edit View Help" bar
-	KaliTitleSize   = 12
+	KaliTitleHeight = 33 // Kali: title bar; its contents sit at KaliTitleMid
+	KaliTitleMid    = 19
+	KaliMenuHeight  = 21 // Kali: "File Actions Edit View Help" bar
+	KaliMenuPadX    = 19
+	KaliTitleSize   = 11
 	KaliMenuSize    = 13
-	KaliButtonR     = 7.5
-	KaliButtonGap   = 24 // center to center
-	KaliButtonInset = 17 // close button center from the right edge
-	KaliIconInset   = 15 // terminal icon center from the left edge
-	KaliMenuGap     = 18
+	KaliButtonR     = 7
+	KaliButtonGap   = 22 // center to center
+	KaliButtonInset = 19 // close button center from the right edge
+	KaliIconInset   = 21 // terminal icon center from the left edge
+	KaliMenuGap     = 15
 	CodePadX        = 16
 	CodePadTop      = 4
 	CodePadBottom   = 20
@@ -284,7 +287,7 @@ func Compute(in Input) (*Layout, error) {
 			minW = math.Ceil(2*inset + titleW)
 		}
 		if kali {
-			menuW := float64(BarPadX)
+			menuW := float64(KaliMenuPadX)
 			for _, item := range KaliMenu {
 				menuW += titleFont.Width(item, KaliMenuSize) + KaliMenuGap
 			}
@@ -363,7 +366,14 @@ func Compute(in Input) (*Layout, error) {
 		}
 	}
 	if s.Cursor && len(L.Rows) > 0 {
+		// The cursor sits at the last row that has text, as in a terminal.
 		last := L.Rows[len(L.Rows)-1]
+		for i := len(L.Rows) - 1; i >= 0; i-- {
+			if strings.TrimSpace(L.Rows[i].Spans.Text()) != "" {
+				last = L.Rows[i]
+				break
+			}
+		}
 		x := last.X
 		for _, sp := range last.Spans {
 			x += in.Code.Width(sp.Text, size)
@@ -382,8 +392,8 @@ func Compute(in Input) (*Layout, error) {
 func buildKaliChrome(card Rect, title string, font *fonts.Face, badge *Badge) *Chrome {
 	c := &Chrome{Style: settings.ChromeKali, Bar: Rect{card.X, card.Y, card.W, KaliTitleHeight + KaliMenuHeight}}
 	c.MenuBar = Rect{card.X, card.Y + KaliTitleHeight, card.W, KaliMenuHeight}
-	cy := card.Y + KaliTitleHeight/2
-	c.Icon = &Rect{card.X + KaliIconInset - 8, cy - 6, 16, 12}
+	cy := card.Y + KaliTitleMid
+	c.Icon = &Rect{card.X + KaliIconInset - 7, cy - 6, 14, 12}
 	for i, kind := range []string{"minimize", "maximize", "close"} {
 		c.Buttons = append(c.Buttons, Button{CX: card.X + card.W - KaliButtonInset - float64(2-i)*KaliButtonGap, CY: cy, Kind: kind})
 	}
@@ -396,7 +406,7 @@ func buildKaliChrome(card Rect, title string, font *fonts.Face, badge *Badge) *C
 	}
 	masc, mdesc := font.Metrics(KaliMenuSize)
 	my := c.MenuBar.Y + KaliMenuHeight/2 + (masc-mdesc)/2
-	x := card.X + BarPadX
+	x := card.X + KaliMenuPadX
 	for _, item := range KaliMenu {
 		c.Menu = append(c.Menu, Text{X: x, Y: my, Anchor: "start", Size: KaliMenuSize, Font: font, Text: item,
 			Color: theme.Color{Hex: KaliText, Alpha: 0.95}})

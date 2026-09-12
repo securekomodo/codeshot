@@ -21,18 +21,19 @@ type Info struct {
 	ID    string
 	Label string
 	file  string
+	bold  string // optional bold face of the same family
 }
 
 // Registry lists the bundled code fonts in display order.
 var Registry = []Info{
-	{"cascadia", "Cascadia Code", "fonts/cascadia/CascadiaCode-Regular.ttf"},
-	{"jetbrains", "JetBrains Mono", "fonts/jetbrains/JetBrainsMono-Regular.ttf"},
-	{"fira", "Fira Code", "fonts/fira/FiraCode-Regular.ttf"},
-	{"geist", "Geist Mono", "fonts/geist/GeistMono-Regular.ttf"},
-	{"ibm", "IBM Plex Mono", "fonts/ibm/IBMPlexMono-Regular.ttf"},
-	{"source", "Source Code Pro", "fonts/source/SourceCodePro-Regular.ttf"},
-	{"space", "Space Mono", "fonts/space/SpaceMono-Regular.ttf"},
-	{"dejavu", "DejaVu Sans Mono", "fonts/dejavu/DejaVuSansMono.ttf"},
+	{"cascadia", "Cascadia Code", "fonts/cascadia/CascadiaCode-Regular.ttf", ""},
+	{"jetbrains", "JetBrains Mono", "fonts/jetbrains/JetBrainsMono-Regular.ttf", ""},
+	{"fira", "Fira Code", "fonts/fira/FiraCode-Regular.ttf", ""},
+	{"geist", "Geist Mono", "fonts/geist/GeistMono-Regular.ttf", ""},
+	{"ibm", "IBM Plex Mono", "fonts/ibm/IBMPlexMono-Regular.ttf", ""},
+	{"source", "Source Code Pro", "fonts/source/SourceCodePro-Regular.ttf", ""},
+	{"space", "Space Mono", "fonts/space/SpaceMono-Regular.ttf", ""},
+	{"dejavu", "DejaVu Sans Mono", "fonts/dejavu/DejaVuSansMono.ttf", "fonts/dejavu/DejaVuSansMono-Bold.ttf"},
 }
 
 // Default is the font id used when none is requested.
@@ -95,6 +96,21 @@ func Load(idOrPath string) (*Face, error) {
 	}
 	return nil, fmt.Errorf("unknown font %q: use one of %s, or a path to a .ttf/.otf file",
 		idOrPath, strings.Join(IDs(), ", "))
+}
+
+// Bold returns the bundled bold face of a code font, if it has one, so the
+// rasterizer can render bold spans with a real bold face.
+func Bold(id string) (*Face, error) {
+	for _, in := range Registry {
+		if in.ID == id && in.bold != "" {
+			data, err := assets.FS.ReadFile(in.bold)
+			if err != nil {
+				return nil, err
+			}
+			return parse(id+"-bold", data)
+		}
+	}
+	return nil, nil
 }
 
 // Fallbacks returns the bundled fallback faces (symbols, then emoji).

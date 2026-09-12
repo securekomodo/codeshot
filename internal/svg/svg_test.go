@@ -127,8 +127,8 @@ func TestKaliChromeAndCursor(t *testing.T) {
 	bd, _ := theme.GetBackdrop(s.Backdrop)
 	L, _ := layout.Compute(layout.Input{Settings: s, Theme: th, Backdrop: bd, Code: code, Title: inter, Lines: []highlight.Line{{{Text: "$"}}}})
 	out := string(Render(L, Options{}))
-	for _, want := range []string{`fill="` + layout.KaliBar + `"`, `fill="` + layout.KaliBlue + `"`, `stroke="` + layout.KaliButtonEdge + `" stroke-width="2"`,
-		`fill="` + layout.KaliButton + `" stroke="` + layout.KaliButtonEdge + `" stroke-width="1"/>`, `rx="1.5" fill="none"`, `>Actions</text>`, `>kali@kali: ~</text>`, `fill-opacity="0.85"/>`} {
+	for _, want := range []string{`fill="#ffffff" fill-opacity="0.07"/>`, `fill="` + layout.KaliBlue + `"`, `stroke="` + layout.KaliButtonEdge + `" stroke-width="2"`,
+		`fill="` + layout.KaliButton + `" stroke="` + layout.KaliButtonEdge + `" stroke-width="1"/>`, `rx="1.5" fill="none"`, `>Actions</text>`, `>kali@kali: ~</text>`, `fill-opacity="0.95"/>`} {
 		if !strings.Contains(out, want) {
 			t.Errorf("missing %q", want)
 		}
@@ -136,8 +136,8 @@ func TestKaliChromeAndCursor(t *testing.T) {
 	if strings.Contains(out, `fill="#ff5f57"`) {
 		t.Error("traffic lights should not be drawn in the kali style")
 	}
-	if strings.Contains(out, `height="1" fill=`) {
-		t.Error("kali bars have no separator lines")
+	if strings.Contains(out, `fill="`+layout.KaliBar+`"`) {
+		t.Error("kali bars share the window color")
 	}
 	if strings.Contains(out, `fill-opacity="0.16"`) {
 		t.Error("no swirl unless asked")
@@ -145,20 +145,13 @@ func TestKaliChromeAndCursor(t *testing.T) {
 	s.Watermark = settings.WatermarkSwirl
 	L, _ = layout.Compute(layout.Input{Settings: s, Theme: th, Backdrop: bd, Code: code, Title: inter, Lines: []highlight.Line{{{Text: "$"}}}})
 	out = string(Render(L, Options{}))
-	gi := strings.Index(out, `<g transform="translate(`)
-	if gi < 0 {
-		t.Fatal("swirl group missing")
-	}
-	group := out[gi : gi+strings.Index(out[gi:], "</g>")]
-	if strings.Count(group, `<path d="M`) != 3 || !strings.Contains(group, `fill="#000000" fill-opacity="0.16"`) {
+	if strings.Count(out, `fill="#000000" fill-opacity="0.16" stroke="#000000"`) != 3 {
 		t.Error("swirl should place the three traced strokes")
 	}
 	if strings.Index(out, `fill-opacity="0.16"`) > strings.Index(out, `>Actions</text>`) {
 		t.Error("swirl should be drawn under the menu text")
 	}
-	if !strings.Contains(group[:80], `scale(`) {
-		t.Error("swirl group should be scaled")
-	}
+
 	png1x1 := []byte("\x89PNG\r\n\x1a\n")
 	L, _ = layout.Compute(layout.Input{Settings: s, Theme: th, Backdrop: bd, Code: code, Title: inter, Lines: []highlight.Line{{{Text: "$"}}},
 		Image: &layout.WatermarkImage{Data: png1x1, Mime: "image/png", W: 2, H: 1, Opacity: 0.2}})

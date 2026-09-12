@@ -182,7 +182,7 @@ func run(args []string, stdin io.Reader, stdout io.Writer) error {
 			s.Title = "kali@kali: ~"
 		}
 		if !seen["card-radius"] {
-			s.CardRadius = 6
+			s.CardRadius = 8
 		}
 	}
 	s.Shadow = !o.noShadow

@@ -70,7 +70,7 @@ func (c colorizer) terminalKali(lines []string) []Line {
 	}
 	for _, l := range lines {
 		if m := kaliTopLine.FindStringSubmatch(l); m != nil {
-			out = append(out, Line{colored(m[1], KaliGreen), colored(m[2], KaliBlue), colored(m[3], KaliGreen), plain(m[4]), colored(m[5], KaliGreen), plain(m[6])})
+			out = append(out, Line{colored(m[1], KaliGreen), {Text: m[2], Color: KaliBlue, Bold: true}, colored(m[3], KaliGreen), {Text: m[4], Bold: true}, colored(m[5], KaliGreen), plain(m[6])})
 			first = false
 			continue
 		}
@@ -123,7 +123,7 @@ func (c colorizer) promptOf(l string) (Identity, string, bool) {
 }
 
 func (c colorizer) kaliTop(who, path string) Line {
-	return Line{colored("┌──(", KaliGreen), colored(who, KaliBlue), colored(")-[", KaliGreen), plain(path), colored("]", KaliGreen)}
+	return Line{colored("┌──(", KaliGreen), {Text: who, Color: KaliBlue, Bold: true}, colored(")-[", KaliGreen), {Text: path, Bold: true}, colored("]", KaliGreen)}
 }
 
 func (c colorizer) kaliBottom(symbol, cmd string) Line {
