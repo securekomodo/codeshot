@@ -18,45 +18,40 @@
   <sub>Every frame was rendered by <code>codeshot</code>: all seventeen presets, twelve themes, ten backdrops, seven fonts.</sub>
 </p>
 
-<table align="center">
-  <tr>
-    <td align="center"><sub>INPUT</sub><br><b>source code</b></td>
-    <td align="center"><sub>OUTPUT</sub><br><b>PNG · SVG · clipboard</b></td>
-    <td align="center"><sub>COST</sub><br><b>free</b></td>
-    <td align="center"><sub>ACCOUNT</sub><br><b>not required</b></td>
-    <td align="center"><sub>PROCESSING</sub><br><b>on your machine</b></td>
-  </tr>
-</table>
+## Install
 
-## The thirty-second tour
+Go 1.25 or newer is the only requirement. The fonts and the rasterizer are inside the binary.
 
 ```sh
-go build -o codeshot ./cmd/codeshot           # that's the whole install
-
-codeshot main.go                              # → main-go.png, language guessed from the name
-git diff | codeshot                           # piped input picks its own preset: a diff here
-cat query.sql | codeshot --lang sql           # or say what it is
-codeshot --theme nightOwl --bg tide app.tsx   # pick a theme and a backdrop
-codeshot --bg random app.tsx                  # or let it surprise you (the pick is printed to stderr)
-codeshot --copy notes.md                      # straight to the clipboard, ready to paste
-codeshot --preset git-diff --sample -o d.svg  # every preset ships a sample; .svg gets you vectors
-codeshot --list themes                        # themes, backdrops, fonts, languages, presets
+git clone <this repo> codeshot && cd codeshot
+go build -o codeshot ./cmd/codeshot
+./codeshot main.go        # → main-go.png, ready to paste anywhere
 ```
 
-## Why you'll like it
+Move the binary somewhere on your `PATH` and you are done. Pipe anything in (`git diff | codeshot`), point it at a file, or add `--copy` to skip the file and go straight to the clipboard.
 
-<table>
-  <tr>
-    <td valign="top" width="33%"><b>🎨 Real editor themes</b><br>Dracula, Night Owl, One Dark, GitHub and eight more, with the exact token colors you see in your editor, not a lookalike palette.</td>
-    <td valign="top" width="33%"><b>🔤 Ligature-ready fonts</b><br>Cascadia Code, JetBrains Mono, Fira Code and four more are built into the binary. Arrows and <code>!==</code> render the way they do in your terminal.</td>
-    <td valign="top" width="33%"><b>🖼️ A frame that looks finished</b><br>macOS-style window, soft shadow, gradient backdrops, line numbers, a title bar with badges. Tune every knob or keep the defaults.</td>
-  </tr>
-  <tr>
-    <td valign="top"><b>🧰 Seventeen presets, picked for you</b><br>Terminal sessions, git logs and diffs, server logs, HTTP requests, test output, .env files, ASCII trees, Lighthouse-style metrics. Pipe something in and the right one is chosen from the content. Terminal sessions get real shell highlighting: commands, flags, strings, pipes, and status words, numbers, hashes and URLs in the output.</td>
-    <td valign="top"><b>📐 Crisp at any size</b><br>Retina PNG at 2x by default (or 1x to 8x), or a standalone SVG with the fonts embedded, so it scales forever.</td>
-    <td valign="top"><b>🔒 Nothing leaves your machine</b><br>No browser, no server, no network code at all. Paste production logs with a clear conscience.</td>
-  </tr>
-</table>
+## Good to know
+
+- **Everything happens on your machine.** Highlighting, layout and rendering run inside the binary. There is no network code at all, so nothing you paste can go anywhere.
+- **No account, no API key, no telemetry.** Nothing to sign up for and nothing phoning home.
+- **One file, nothing else to install.** No browser, no ImageMagick, no system libraries. Works offline on macOS, Linux and Windows.
+- **Output is just a file.** A PNG or SVG where you asked for it, or your clipboard. Nothing else is written anywhere.
+- **Your terminal sessions and logs are safe to render.** Sample credentials in the built-in demos are placeholders, and your own content never leaves the process.
+- **Honest numbers.** About 16 MB on disk (fonts and the rasterizer make up most of it) and about a second per image.
+
+<br>
+
+<p align="center"><sub>Everything below is the catalog: themes, backdrops, fonts, presets, recipes, and every flag.</sub></p>
+
+<p align="center">
+  <a href="#pick-a-theme">Themes</a> ·
+  <a href="#pick-a-backdrop">Backdrops</a> ·
+  <a href="#pick-a-font">Fonts</a> ·
+  <a href="#presets-for-the-things-developers-actually-screenshot">Presets</a> ·
+  <a href="#recipes">Recipes</a> ·
+  <a href="#how-it-works">How it works</a> ·
+  <a href="#credits">Credits</a>
+</p>
 
 ## Pick a theme
 
@@ -219,6 +214,8 @@ flowchart LR
 
 The card is laid out in Go with the font's own metrics, written as SVG, and rasterized in-process by resvg compiled to WebAssembly. No CGO, no system libraries, identical output on every machine.
 
+Hacking on it: `go test ./...` renders every preset in every theme; `tools/gen-readme-images.sh` regenerates every image on this page with the tool itself, and `tools/gen-showcase.sh` rebuilds the animation (needs ffmpeg). The fonts are in the tree; `tools/fetch-fonts.sh` re-downloads them from their upstream releases if ever needed.
+
 <details>
 <summary><b>Every flag</b></summary>
 
@@ -296,17 +293,6 @@ Roughly a second for a typical snippet at 2x. Bigger scales cost more pixels.
 They are original and fictional (a made-up weather-alerts service). Any credential-looking value in them is a placeholder.
 
 </details>
-
-## Build from source
-
-```sh
-git clone <this repo> codeshot && cd codeshot
-go build -o codeshot ./cmd/codeshot
-go test ./...                     # the full suite renders every preset in every theme
-./tools/gen-readme-images.sh      # regenerates every image on this page with the tool itself
-```
-
-Go 1.25 or newer. The fonts are already in the tree; <code>tools/fetch-fonts.sh</code> re-downloads them from their upstream releases if you ever need to.
 
 ## Credits
 
