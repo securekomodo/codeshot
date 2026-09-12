@@ -23,7 +23,7 @@
 Go 1.25 or newer is the only requirement. The fonts and the rasterizer are inside the binary.
 
 ```sh
-git clone <this repo> codeshot && cd codeshot
+git clone https://github.com/securekomodo/codeshot.git && cd codeshot
 go build -o codeshot ./cmd/codeshot
 ./codeshot main.go        # → main-go.png, ready to paste anywhere
 ```
