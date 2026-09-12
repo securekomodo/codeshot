@@ -7,8 +7,6 @@ trap 'rm -f codeshot' EXIT
 S=docs/snippet.js
 mkdir -p docs/themes docs/backdrops docs/presets docs/fonts
 
-go run tools/banner/main.go -o docs/banner.png >/dev/null
-
 # Hero: light and dark variants, swapped by <picture> in the README.
 ./codeshot --preset code --sample --theme dracula --bg ember --title shoot.js -o docs/hero-dark.png >/dev/null
 ./codeshot --preset code --sample --theme github --bg paper --title shoot.js -o docs/hero-light.png >/dev/null

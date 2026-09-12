@@ -1,9 +1,8 @@
-<p align="center">
-  <img src="docs/banner.png" width="960" alt="codeshot: turn code into a beautiful image in seconds">
-</p>
+<h1 align="center">codeshot</h1>
 
 <p align="center">
-  <b>Point it at code. Get a picture.</b> One binary, no browser, no server, nothing leaves your machine.
+  <b>Turn code into a beautiful image, from your terminal.</b><br>
+  One binary. No browser, no server, nothing leaves your machine.
 </p>
 
 <p align="center">
@@ -16,7 +15,7 @@
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="docs/hero-dark.png">
-    <img src="docs/hero-light.png" width="720" alt="A code snippet rendered as a framed image. This picture follows your GitHub theme: dark shows Dracula on the Ember backdrop, light shows GitHub Light on Paper.">
+    <img src="docs/hero-light.png" width="760" alt="A code snippet rendered as a framed image. This picture follows your GitHub theme: dark shows Dracula on the Ember backdrop, light shows GitHub Light on Paper.">
   </picture>
   <br>
   <sub>This hero follows your GitHub theme. Both versions were rendered by <code>codeshot</code> itself.</sub>
