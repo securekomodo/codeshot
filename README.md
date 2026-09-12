@@ -51,6 +51,7 @@ Move the binary somewhere on your `PATH` and you are done. Pipe anything in (`gi
   <a href="#presets-for-the-things-developers-actually-screenshot">Presets</a> ·
   <a href="#recipes">Recipes</a> ·
   <a href="#how-it-works">How it works</a> ·
+  <a href="#license">License</a> ·
   <a href="#credits">Credits</a>
 </p>
 
@@ -316,6 +317,10 @@ Roughly a second for a typical snippet at 2x. Bigger scales cost more pixels.
 They are original and fictional (a made-up weather-alerts service). Any credential-looking value in them is a placeholder.
 
 </details>
+
+## License
+
+[MIT](LICENSE). Do what you like with it. The bundled fonts keep their own licenses, listed below.
 
 ## Credits
 
