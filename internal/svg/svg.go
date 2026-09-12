@@ -268,11 +268,9 @@ func (w *writer) swirl(L *layout.Layout) {
 	for _, s := range swirlStrokes {
 		d := "M" + at(s[0]) + " C" + at(s[1]) + " " + at(s[2]) + " " + at(s[3]) + " L" + at(s[4]) +
 			" C" + at(s[5]) + " " + at(s[6]) + " " + at(s[0]) + " Z"
-		// Soft edges: two faint outlines outside the band before the band itself.
-		w.printf(`<path d="%s" fill="none" stroke="#000000" stroke-opacity="0.03" stroke-width="%s" stroke-linejoin="round"/>`, d, num(c.H*0.024))
-		w.printf(`<path d="%s" fill="none" stroke="#000000" stroke-opacity="0.05" stroke-width="%s" stroke-linejoin="round"/>`, d, num(c.H*0.012))
-		w.printf(`<path d="%s" fill="#000000" fill-opacity="0.16" stroke="#000000" stroke-opacity="0.05" stroke-width="%s" stroke-linejoin="round"/>`,
-			d, num(c.H*0.004))
+		// The band itself with only a hairline to take the edge off.
+		w.printf(`<path d="%s" fill="#000000" fill-opacity="0.11" stroke="#000000" stroke-opacity="0.03" stroke-width="%s" stroke-linejoin="round"/>`,
+			d, num(c.H*0.005))
 	}
 }
 

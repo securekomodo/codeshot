@@ -139,16 +139,16 @@ func TestKaliChromeAndCursor(t *testing.T) {
 	if strings.Contains(out, `fill="`+layout.KaliBar+`"`) {
 		t.Error("kali bars share the window color")
 	}
-	if strings.Contains(out, `fill-opacity="0.16"`) {
+	if strings.Contains(out, `fill-opacity="0.11"`) {
 		t.Error("no swirl unless asked")
 	}
 	s.Watermark = settings.WatermarkSwirl
 	L, _ = layout.Compute(layout.Input{Settings: s, Theme: th, Backdrop: bd, Code: code, Title: inter, Lines: []highlight.Line{{{Text: "$"}}}})
 	out = string(Render(L, Options{}))
-	if strings.Count(out, `fill="#000000" fill-opacity="0.16" stroke="#000000"`) != 3 {
+	if strings.Count(out, `fill="#000000" fill-opacity="0.11" stroke="#000000"`) != 3 {
 		t.Error("swirl should place the three traced strokes")
 	}
-	if strings.Index(out, `fill-opacity="0.16"`) > strings.Index(out, `>Actions</text>`) {
+	if strings.Index(out, `fill-opacity="0.11"`) > strings.Index(out, `>Actions</text>`) {
 		t.Error("swirl should be drawn under the menu text")
 	}
 
