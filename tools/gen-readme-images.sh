@@ -13,13 +13,17 @@ go run tools/banner/main.go -o docs/banner.png >/dev/null
 ./codeshot --preset code --sample --theme dracula --bg ember --title shoot.js -o docs/hero-dark.png >/dev/null
 ./codeshot --preset code --sample --theme github --bg paper --title shoot.js -o docs/hero-light.png >/dev/null
 
+# No backdrop at all (transparent PNG), and rounded backdrop corners.
+./codeshot --preset code --sample --transparent --title shoot.js -o docs/transparent.png >/dev/null
+./codeshot --preset code --sample --radius 28 --bg dusk --title shoot.js -o docs/rounded.png >/dev/null
+
 # One thumbnail per theme (same snippet, neutral backdrop so the theme shows).
-for t in $(./codeshot --list themes | awk '{print $1}'); do
+for t in $(./codeshot --list themes | awk '{print $1}' | grep -v '^random$'); do
   ./codeshot --theme "$t" --bg slate --scale 1 --font-size 13 --padding 20 --title "$t" -o "docs/themes/$t.png" "$S" >/dev/null
 done
 
 # One thumbnail per backdrop (tiny card so the backdrop dominates).
-for b in $(./codeshot --list backdrops | awk '{print $1}'); do
+for b in $(./codeshot --list backdrops | awk '{print $1}' | grep -v '^random$'); do
   ./codeshot --bg "$b" --scale 1 --font-size 11 --padding 36 --no-chrome --line-numbers=false -o "docs/backdrops/$b.png" "$S" >/dev/null
 done
 

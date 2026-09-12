@@ -17,7 +17,6 @@ import (
 
 // Fixed geometry of the card, in CSS px.
 const (
-	Radius        = 12   // rounded-xl
 	BarHeight     = 36   // px-4 py-3 around 12px dots
 	BarWithBadge  = 50.5 // py-3 around a 26.5px badge
 	DotRadius     = 6
@@ -113,6 +112,8 @@ type Layout struct {
 	Backdrop       theme.Backdrop
 	ShowBackground bool
 	Card           Rect
+	Radius         float64 // backdrop corner radius
+	CardRadius     float64 // window corner radius
 	Window         theme.Color
 	Shadow         bool
 	Light          bool
@@ -230,6 +231,7 @@ func Compute(in Input) (*Layout, error) {
 		W: cardW + 2*pad, H: cardH + 2*pad,
 		Backdrop: in.Backdrop, ShowBackground: s.ShowBackground && !in.Backdrop.Transparent,
 		Card:   Rect{pad, pad, cardW, cardH},
+		Radius: float64(s.Radius), CardRadius: float64(s.CardRadius),
 		Window: window, Shadow: s.Shadow, Light: light,
 		Font: in.Code, FontSize: size, LineHeight: lh, Plain: plain, Center: milestone,
 	}

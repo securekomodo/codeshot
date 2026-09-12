@@ -99,6 +99,20 @@ codeshot --list themes                        # themes, backdrops, fonts, langua
 <td align="center" valign="top"><a href="docs/backdrops/none.png"><img src="docs/backdrops/none.png" width="220" alt="none"></a><br><sub><code>--bg none</code></sub></td>
 </tr></table>
 
+## Or no backdrop at all
+
+<p align="center">
+  <img src="docs/transparent.png" width="620" alt="The window and its shadow on a transparent background">
+  <br>
+  <sub><code>--transparent</code> keeps the window and its soft shadow and drops the color: a PNG with an alpha channel that sits on any page, slide, or chat bubble. This one is sitting on GitHub's own background right now.</sub>
+</p>
+
+<p align="center">
+  <img src="docs/rounded.png" width="620" alt="A card with rounded backdrop corners">
+  <br>
+  <sub><code>--radius 28</code> rounds the backdrop's corners (they become transparent), and <code>--card-radius</code> changes the window's.</sub>
+</p>
+
 ## Pick a font
 
 Every face is bundled. Point <code>--font</code> at any <code>.ttf</code> or <code>.otf</code> on disk to use your own.
@@ -167,6 +181,12 @@ tree -L 2 --noreport | codeshot --preset project-structure --bg ink
 # Big, centered, no window: an announcement card
 echo "🎉 v2.0 is out" | codeshot --preset dev-milestone --bg dusk
 
+# No backdrop: just the window and its shadow, on whatever you paste it into
+codeshot --transparent --copy main.go
+
+# Rounded corners on the backdrop, sharper ones on the window
+codeshot --radius 24 --card-radius 6 main.go
+
 # Tired of the same orange? Make every shot a surprise
 alias shot='codeshot --bg random --copy'
 shot main.go
@@ -221,7 +241,9 @@ codeshot [flags] [FILE]        FILE omitted or "-" reads stdin; flags may come b
 --title TEXT          window title (default: the preset's)
 --padding N           space around the card, 0..160 (default 48; 64 for dev-milestone)
 --font-size N         11..28 (default 15)
---no-bg               transparent backdrop
+--transparent         no backdrop: a transparent PNG with the window and its shadow (alias --no-bg, same as --bg none)
+--radius PX           corner radius of the backdrop; the PNG's corners become transparent (default 0)
+--card-radius PX      corner radius of the window (default 12)
 --no-chrome           hide the title bar
 --no-shadow           no drop shadow
 --line-numbers BOOL   default on for the code and log presets

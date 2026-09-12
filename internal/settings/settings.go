@@ -24,6 +24,9 @@ type Settings struct {
 	Padding  int // px around the card, 0..160
 	FontSize int // px, 11..28
 
+	Radius     int // corner radius of the backdrop (the image itself), 0 = square
+	CardRadius int // corner radius of the window
+
 	ShowBackground  bool
 	ShowChrome      bool
 	ShowLineNumbers bool
@@ -40,6 +43,9 @@ type Settings struct {
 	Width    int // fixed card width in px; 0 = fit content
 	MaxWidth int // wrap so the card is at most this wide; 0 = unlimited
 }
+
+// DefaultCardRadius is the window's corner radius in px.
+const DefaultCardRadius = 12
 
 // DefaultMaxWidth is the widest a card gets unless --width, --wrap or
 // --max-width says otherwise: long lines soft-wrap instead of producing a
@@ -74,6 +80,7 @@ func Defaults(p preset.Preset) Settings {
 		ShowBadge:       true,
 		Scale:           2,
 		MaxWidth:        DefaultMaxWidth,
+		CardRadius:      DefaultCardRadius,
 	}
 	if s.Language == "" {
 		s.Language = "javascript"
@@ -104,6 +111,9 @@ func (s *Settings) Validate() error {
 	}
 	if s.FontSize < 11 || s.FontSize > 28 {
 		return fmt.Errorf("font size %d out of range 11..28", s.FontSize)
+	}
+	if s.Radius < 0 || s.Radius > 200 || s.CardRadius < 0 || s.CardRadius > 200 {
+		return fmt.Errorf("radius values must be 0..200")
 	}
 	if s.Scale < 1 || s.Scale > 8 {
 		return fmt.Errorf("scale %d out of range 1..8", s.Scale)

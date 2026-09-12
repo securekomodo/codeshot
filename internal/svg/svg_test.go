@@ -117,6 +117,28 @@ func TestFastShadow(t *testing.T) {
 	}
 }
 
+func TestRadii(t *testing.T) {
+	p, _ := preset.Get("code")
+	s := settings.Defaults(p)
+	s.Radius, s.CardRadius = 24, 0
+	code, _ := fonts.Load("jetbrains")
+	th, _ := theme.Get(s.Theme)
+	bd, _ := theme.GetBackdrop(s.Backdrop)
+	L, _ := layout.Compute(layout.Input{Settings: s, Theme: th, Backdrop: bd, Code: code, Lines: []highlight.Line{{{Text: "x"}}}})
+	out := string(Render(L, Options{FastShadow: true}))
+	for _, want := range []string{`rx="24" fill="url(#bg)"`, `<clipPath id="backdrop"><rect width="`, `clip-path="url(#backdrop)"`, `rx="0"/></clipPath>`} {
+		if !strings.Contains(out, want) {
+			t.Errorf("missing %q", want)
+		}
+	}
+	s.Backdrop = "none"
+	bd, _ = theme.GetBackdrop(s.Backdrop)
+	L, _ = layout.Compute(layout.Input{Settings: s, Theme: th, Backdrop: bd, Code: code, Lines: []highlight.Line{{{Text: "x"}}}})
+	if out := string(Render(L, Options{})); strings.Contains(out, "backdrop") {
+		t.Error("transparent backdrop should not be clipped")
+	}
+}
+
 func TestNoBackgroundNoShadow(t *testing.T) {
 	p, _ := preset.Get("dev-milestone")
 	s := settings.Defaults(p)

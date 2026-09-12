@@ -44,6 +44,11 @@ func Render(L *layout.Layout, o Options) []byte {
 		num(math.Round(L.W*scale)), num(math.Round(L.H*scale)), num(L.W), num(L.H))
 	w.defs(L, o)
 	w.backdrop(L)
+	// With rounded backdrop corners, nothing may spill into the cut-off corners.
+	clipped := L.ShowBackground && L.Radius > 0
+	if clipped {
+		w.printf(`<g clip-path="url(#backdrop)">`)
+	}
 	if o.FastShadow {
 		w.layeredShadow(L)
 	} else {
@@ -51,7 +56,7 @@ func Render(L *layout.Layout, o Options) []byte {
 	}
 	// A 1px hairline that stays even when the shadow is off.
 	w.printf(`<rect x="%s" y="%s" width="%s" height="%s" rx="%s" fill="#ffffff" fill-opacity="0.04"/>`,
-		num(L.Card.X-1), num(L.Card.Y-1), num(L.Card.W+2), num(L.Card.H+2), num(layout.Radius+1))
+		num(L.Card.X-1), num(L.Card.Y-1), num(L.Card.W+2), num(L.Card.H+2), num(L.CardRadius+1))
 	w.printf(`<g clip-path="url(#card)">`)
 	w.printf(`<rect x="%s" y="%s" width="%s" height="%s"%s/>`,
 		num(L.Card.X), num(L.Card.Y), num(L.Card.W), num(L.Card.H), fill(L.Window))
@@ -64,7 +69,11 @@ func Render(L *layout.Layout, o Options) []byte {
 	for _, r := range L.Rows {
 		w.row(L, r)
 	}
-	w.printf(`</g></svg>`)
+	w.printf(`</g>`)
+	if clipped {
+		w.printf(`</g>`)
+	}
+	w.printf(`</svg>`)
 	return []byte(w.String())
 }
 
@@ -88,7 +97,10 @@ func (w *writer) defs(L *layout.Layout, o Options) {
 		w.printf(`</linearGradient>`)
 	}
 	w.printf(`<clipPath id="card"><rect x="%s" y="%s" width="%s" height="%s" rx="%s"/></clipPath>`,
-		num(L.Card.X), num(L.Card.Y), num(L.Card.W), num(L.Card.H), num(layout.Radius))
+		num(L.Card.X), num(L.Card.Y), num(L.Card.W), num(L.Card.H), num(L.CardRadius))
+	if L.ShowBackground && L.Radius > 0 {
+		w.printf(`<clipPath id="backdrop"><rect width="%s" height="%s" rx="%s"/></clipPath>`, num(L.W), num(L.H), num(L.Radius))
+	}
 	if L.Shadow && !o.FastShadow {
 		// CSS 0 24px 60px -12px rgba(0,0,0,.55): a 60px blur is a Gaussian with
 		// sigma 30. The filter region is the shadow box plus three sigmas,
@@ -120,11 +132,15 @@ func (w *writer) backdrop(L *layout.Layout) {
 	if !L.ShowBackground {
 		return
 	}
+	rx := ""
+	if L.Radius > 0 {
+		rx = ` rx="` + num(L.Radius) + `"`
+	}
 	switch {
 	case L.Backdrop.Gradient():
-		w.printf(`<rect width="%s" height="%s" fill="url(#bg)"/>`, num(L.W), num(L.H))
+		w.printf(`<rect width="%s" height="%s"%s fill="url(#bg)"/>`, num(L.W), num(L.H), rx)
 	default:
-		w.printf(`<rect width="%s" height="%s"%s/>`, num(L.W), num(L.H), fill(L.Backdrop.Solid))
+		w.printf(`<rect width="%s" height="%s"%s%s/>`, num(L.W), num(L.H), rx, fill(L.Backdrop.Solid))
 	}
 }
 
@@ -139,12 +155,16 @@ func (w *writer) shadow(L *layout.Layout) {
 	if !L.Shadow {
 		return
 	}
-	w.printf(`<rect x="%s" y="%s" width="%s" height="%s" fill="#000000" fill-opacity="%s" filter="url(#shadow)"/>`,
+	w.printf(`<rect x="%s" y="%s" width="%s" height="%s" rx="%s" fill="#000000" fill-opacity="%s" filter="url(#shadow)"/>`,
 		num(L.Card.X+shadowSpread), num(L.Card.Y+shadowSpread+shadowOffsetY),
-		num(L.Card.W-2*shadowSpread), num(L.Card.H-2*shadowSpread), num(shadowAlpha))
+		num(L.Card.W-2*shadowSpread), num(L.Card.H-2*shadowSpread), num(shadowRadius(L)), num(shadowAlpha))
 }
 
 const shadowAlpha = 0.55
+
+// shadowRadius is the corner radius of the shadow box: the window's radius
+// shrunk by the negative spread.
+func shadowRadius(L *layout.Layout) float64 { return math.Max(0, L.CardRadius-shadowSpread) }
 
 // layeredShadow approximates the blurred shadow box with concentric bands.
 // A Gaussian blur of a box has coverage A(d) = alpha * Q(d/sigma) at signed
@@ -167,9 +187,10 @@ func (w *writer) layeredShadow(L *layout.Layout) {
 		if alpha < 0.0005 || bw+2*in <= 0 || bh+2*in <= 0 {
 			continue
 		}
+		r0 := shadowRadius(L)
 		w.printf(`<path d="%s %s" fill-rule="evenodd" fill="#000000" fill-opacity="%s"/>`,
-			roundedRectPath(bx-e, by-e, bw+2*e, bh+2*e, math.Max(0, e)),
-			roundedRectPath(bx-in, by-in, bw+2*in, bh+2*in, math.Max(0, in)), num(alpha))
+			roundedRectPath(bx-e, by-e, bw+2*e, bh+2*e, math.Max(0, r0+e)),
+			roundedRectPath(bx-in, by-in, bw+2*in, bh+2*in, math.Max(0, r0+in)), num(alpha))
 	}
 	// The solid core, hidden under the card except at the bottom edge.
 	core := inner * shadowSigma

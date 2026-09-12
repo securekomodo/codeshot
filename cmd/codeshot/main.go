@@ -51,7 +51,7 @@ type usageError struct{ error }
 
 type options struct {
 	output, presetKey, lang, themeID, bg, font, title, prompt, method, status, flags, lineNumbers, list string
-	padding, fontSize, scale, wrap, width, maxWidth                                                     int
+	padding, fontSize, scale, wrap, width, maxWidth, radius, cardRadius                                 int
 	sample, noBG, noChrome, noShadow, noBadge, embedFonts, copy, showVersion                            bool
 }
 
@@ -71,7 +71,10 @@ func run(args []string, stdin io.Reader, stdout io.Writer) error {
 	fs.StringVar(&o.title, "title", "", "window title (default: preset's)")
 	fs.IntVar(&o.padding, "padding", -1, "space around the card in px, 0..160 (default 48, 64 for dev-milestone)")
 	fs.IntVar(&o.fontSize, "font-size", 15, "code font size in px, 11..28")
-	fs.BoolVar(&o.noBG, "no-bg", false, "transparent backdrop")
+	fs.IntVar(&o.radius, "radius", 0, "corner radius of the backdrop in px (the PNG gets transparent corners)")
+	fs.IntVar(&o.cardRadius, "card-radius", settings.DefaultCardRadius, "corner radius of the window in px")
+	fs.BoolVar(&o.noBG, "no-bg", false, "no backdrop: a transparent PNG with just the window and its shadow (same as --bg none)")
+	fs.BoolVar(&o.noBG, "transparent", false, "alias for --no-bg")
 	fs.BoolVar(&o.noChrome, "no-chrome", false, "hide the window title bar")
 	fs.BoolVar(&o.noShadow, "no-shadow", false, "no drop shadow")
 	fs.StringVar(&o.lineNumbers, "line-numbers", "", "true or false (default: on for code and log presets)")
@@ -149,6 +152,7 @@ func run(args []string, stdin io.Reader, stdout io.Writer) error {
 		s.Padding = o.padding
 	}
 	s.FontSize = o.fontSize
+	s.Radius, s.CardRadius = o.radius, o.cardRadius
 	s.ShowBackground = !o.noBG
 	s.ShowChrome = s.ShowChrome && !o.noChrome
 	s.Shadow = !o.noShadow
