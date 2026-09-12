@@ -78,11 +78,11 @@ func run(args []string, stdin io.Reader, stdout io.Writer) error {
 	fs.BoolVar(&o.noBG, "no-bg", false, "no backdrop: a transparent PNG with just the window and its shadow (same as --bg none)")
 	fs.BoolVar(&o.noBG, "transparent", false, "alias for --no-bg")
 	fs.BoolVar(&o.noChrome, "no-chrome", false, "hide the window title bar")
-	fs.StringVar(&o.chrome, "chrome", settings.ChromeMac, "window style: mac (traffic lights) or kali (Kali Linux terminal with menu bar)")
+	fs.StringVar(&o.chrome, "chrome", settings.ChromeMac, "window style: mac (traffic lights) or kali (Kali Linux terminal: menu bar, two-line prompt, Kali colors)")
 	fs.BoolVar(&o.cursor, "cursor", false, "draw a block cursor after the last line")
 	fs.BoolVar(&o.noShadow, "no-shadow", false, "no drop shadow")
 	fs.StringVar(&o.lineNumbers, "line-numbers", "", "true or false (default: on for code and log presets)")
-	fs.StringVar(&o.prompt, "prompt", "", "terminal presets: replace the prompt with this ($, ❯, or a full user@host:~$); default keeps the content's own")
+	fs.StringVar(&o.prompt, "prompt", "", "terminal presets: replace the prompt ($, ❯, or user@host:~$; with --chrome kali this sets who the prompt shows)")
 	fs.StringVar(&o.method, "method", "GET", "api preset badge: "+strings.Join(settings.Methods, ", "))
 	fs.StringVar(&o.status, "status", "200", "api preset badge: "+strings.Join(settings.Statuses, ", "))
 	fs.BoolVar(&o.noBadge, "no-badge", false, "api preset: hide the method/status badge")
@@ -162,6 +162,13 @@ func run(args []string, stdin io.Reader, stdout io.Writer) error {
 	s.ShowChrome = s.ShowChrome && !o.noChrome
 	s.Chrome, s.Cursor = o.chrome, o.cursor
 	if s.Chrome == settings.ChromeKali {
+		// Kali's own terminal scheme and a Linux terminal font, unless overridden.
+		if !seen["theme"] {
+			s.Theme = "kali"
+		}
+		if !seen["font"] {
+			s.Font = "dejavu"
+		}
 		if !seen["title"] && p.IsTerminal() {
 			s.Title = "kali@kali: ~"
 		}

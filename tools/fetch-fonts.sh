@@ -71,4 +71,24 @@ curl -fsSL --retry 3 -o "$TMP/z.zip" https://github.com/dejavu-fonts/dejavu-font
 lic emoji notoemoji
 get assets/fonts/emoji/NotoEmoji-Regular.ttf "$G/notoemoji/NotoEmoji%5Bwght%5D.ttf"
 
+# Kali's prompt uses ㉿ (U+327F), which none of the code fonts have. A
+# one-glyph subset of Noto Sans KR (OFL) provides it. Needs fontTools:
+#   python3 -m venv .venv && .venv/bin/pip install fonttools brotli
+lic kali notosanskr
+if python3 -c 'import fontTools' 2>/dev/null; then
+  curl -fsSL --retry 3 -o "$TMP/kr.ttf" "$G/notosanskr/NotoSansKR%5Bwght%5D.ttf"
+  python3 - "$TMP/kr.ttf" assets/fonts/kali/NotoSansKR-jueui.ttf <<'PY'
+import sys
+from fontTools.ttLib import TTFont
+from fontTools.varLib import instancer
+from fontTools import subset
+static = instancer.instantiateVariableFont(TTFont(sys.argv[1]), {"wght": 400})
+opts = subset.Options(); opts.hinting = False; opts.name_IDs = ['*']; opts.notdef_outline = True; opts.layout_features = []
+s = subset.Subsetter(opts); s.populate(unicodes=[0x327F]); s.subset(static); static.save(sys.argv[2])
+print("ok  ", sys.argv[2])
+PY
+else
+  echo "skip assets/fonts/kali/NotoSansKR-jueui.ttf (fontTools not installed; the committed subset stays)"
+fi
+
 ls -la assets/fonts/*/

@@ -106,7 +106,7 @@ func (c colorizer) command(s string) Line {
 			out = append(out, c.pal.span(c.pal.Function, tok))
 			expectCommand = commandPrefixes[tok]
 			continue
-		case len(tok) > 1 && tok[0] == '-':
+		case len(tok) > 1 && tok[0] == '-' && !c.kali:
 			out = append(out, c.pal.span(c.pal.Keyword, tok))
 		case shellNumber.MatchString(tok):
 			out = append(out, c.pal.span(c.pal.Number, tok))

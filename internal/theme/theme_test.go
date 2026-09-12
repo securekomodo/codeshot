@@ -4,7 +4,7 @@ import "testing"
 
 func TestRegistry(t *testing.T) {
 	want := []string{"dracula", "nightOwl", "oneDark", "palenight", "oceanicNext", "shadesOfPurple",
-		"vsDark", "okaidia", "gruvboxDark", "github", "oneLight", "nightOwlLight"}
+		"vsDark", "okaidia", "gruvboxDark", "github", "oneLight", "nightOwlLight", "kali"}
 	got := IDs()
 	if len(got) != len(want) {
 		t.Fatalf("themes = %v", got)

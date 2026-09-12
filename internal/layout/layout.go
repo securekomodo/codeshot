@@ -30,11 +30,14 @@ const (
 	BadgeHeight     = 26.5
 	BadgeRadius     = 6
 	BadgeGap        = 8
-	KaliTitleHeight = 30 // Kali: title bar
-	KaliMenuHeight  = 28 // Kali: "File Actions Edit View Help" bar
-	KaliButtonR     = 8
-	KaliButtonGap   = 25 // center to center
-	KaliButtonInset = 15 // close button center from the right edge
+	KaliTitleHeight = 28 // Kali: title bar
+	KaliMenuHeight  = 26 // Kali: "File Actions Edit View Help" bar
+	KaliTitleSize   = 12
+	KaliMenuSize    = 13
+	KaliButtonR     = 7.5
+	KaliButtonGap   = 24 // center to center
+	KaliButtonInset = 17 // close button center from the right edge
+	KaliIconInset   = 15 // terminal icon center from the left edge
 	KaliMenuGap     = 18
 	CodePadX        = 16
 	CodePadTop      = 4
@@ -47,13 +50,14 @@ const (
 // DotColors are the macOS traffic lights.
 var DotColors = [3]string{"#ff5f57", "#febc2e", "#28c840"}
 
-// Kali window colors.
+// Kali window colors (the Kali-Dark window theme and terminal scheme).
 const (
-	KaliBlue      = "#3c82f6" // close button and user@host in the prompt
-	KaliBar       = "#1e2129" // title and menu bars
-	KaliButton    = "#2c303a"
-	KaliButtonRim = "#5c6170"
-	KaliText      = "#e6e8eb"
+	KaliBlue      = highlight.KaliBlue // close button; user and host in the prompt
+	KaliBar       = "#1e2028"          // title and menu bars
+	KaliSeparator = "#3a3e49"          // lines between the bars and the terminal
+	KaliButton    = "#3a3e49"          // minimize and maximize
+	KaliButtonRim = "#767b87"
+	KaliText      = "#e6e6e6"
 )
 
 // KaliMenu is the menu bar of the Kali terminal.
@@ -140,6 +144,7 @@ type Chrome struct {
 	Badge   *Badge
 	MenuBar Rect
 	Menu    []Text
+	Icon    *Rect // Kali: the terminal icon at the left of the title bar
 }
 
 // Layout is the fully positioned card at 1x.
@@ -174,6 +179,11 @@ func Compute(in Input) (*Layout, error) {
 	if milestone {
 		size = math.Round(1.7 * size)
 		lh = math.Round(size * 1.5)
+	}
+	if s.ShowChrome && s.Chrome == settings.ChromeKali {
+		// Terminal line spacing, so box-drawing characters join into
+		// continuous lines (Kali's two-line prompt relies on it).
+		lh = math.Round(size * 1.2)
 	}
 	light := in.Theme.Light()
 
@@ -258,7 +268,7 @@ func Compute(in Input) (*Layout, error) {
 		if kali {
 			menuW := float64(BarPadX)
 			for _, item := range KaliMenu {
-				menuW += titleFont.Width(item, TitleSize) + KaliMenuGap
+				menuW += titleFont.Width(item, KaliMenuSize) + KaliMenuGap
 			}
 			minW = math.Max(minW, math.Ceil(menuW+BarPadX+badgeW))
 		}
@@ -343,22 +353,24 @@ func buildKaliChrome(card Rect, title string, font *fonts.Face, badge *Badge) *C
 	c := &Chrome{Style: settings.ChromeKali, Bar: Rect{card.X, card.Y, card.W, KaliTitleHeight + KaliMenuHeight}}
 	c.MenuBar = Rect{card.X, card.Y + KaliTitleHeight, card.W, KaliMenuHeight}
 	cy := card.Y + KaliTitleHeight/2
+	c.Icon = &Rect{card.X + KaliIconInset - 8, cy - 6, 16, 12}
 	for i, kind := range []string{"minimize", "maximize", "close"} {
 		c.Buttons = append(c.Buttons, Button{CX: card.X + card.W - KaliButtonInset - float64(2-i)*KaliButtonGap, CY: cy, Kind: kind})
 	}
-	asc, desc := font.Metrics(TitleSize)
+	asc, desc := font.Metrics(KaliTitleSize)
 	inset := 3*KaliButtonGap + KaliButtonInset
 	c.Title = Text{
 		X: card.X + card.W/2, Y: cy + (asc-desc)/2, Anchor: "middle",
-		Size: TitleSize, Font: font, Weight: 500,
-		Text: truncate(title, font, TitleSize, card.W-2*float64(inset)), Color: theme.Color{Hex: KaliText, Alpha: 0.92},
+		Size: KaliTitleSize, Font: font, Weight: 500,
+		Text: truncate(title, font, KaliTitleSize, card.W-2*float64(inset)), Color: theme.Color{Hex: KaliText, Alpha: 0.95},
 	}
-	my := c.MenuBar.Y + KaliMenuHeight/2 + (asc-desc)/2
+	masc, mdesc := font.Metrics(KaliMenuSize)
+	my := c.MenuBar.Y + KaliMenuHeight/2 + (masc-mdesc)/2
 	x := card.X + BarPadX
 	for _, item := range KaliMenu {
-		c.Menu = append(c.Menu, Text{X: x, Y: my, Anchor: "start", Size: TitleSize, Font: font, Text: item,
-			Color: theme.Color{Hex: KaliText, Alpha: 0.9}})
-		x += font.Width(item, TitleSize) + KaliMenuGap
+		c.Menu = append(c.Menu, Text{X: x, Y: my, Anchor: "start", Size: KaliMenuSize, Font: font, Text: item,
+			Color: theme.Color{Hex: KaliText, Alpha: 0.95}})
+		x += font.Width(item, KaliMenuSize) + KaliMenuGap
 	}
 	if badge != nil {
 		badge.Box.X = card.X + card.W - BarPadX - badge.Box.W

@@ -183,7 +183,7 @@ func TestComputeBadgeWidthMilestone(t *testing.T) {
 	in.Settings = s
 	L, _ = Compute(in)
 	c := L.Chrome
-	if c == nil || c.Style != settings.ChromeKali || c.Bar.H != KaliTitleHeight+KaliMenuHeight || len(c.Buttons) != 3 || len(c.Menu) != 5 {
+	if c == nil || c.Style != settings.ChromeKali || c.Bar.H != KaliTitleHeight+KaliMenuHeight || len(c.Buttons) != 3 || len(c.Menu) != 5 || c.Icon == nil {
 		t.Fatalf("kali chrome: %+v", c)
 	}
 	if c.Buttons[2].Kind != "close" || c.Buttons[2].CX != L.Card.X+L.Card.W-KaliButtonInset || c.Buttons[0].CX >= c.Buttons[1].CX {
@@ -195,8 +195,8 @@ func TestComputeBadgeWidthMilestone(t *testing.T) {
 	if L.Cursor == nil || L.Cursor.Y >= L.Rows[2].Y || L.Cursor.X <= L.Rows[2].X || L.Cursor.W != cell {
 		t.Errorf("cursor: %+v row %+v", L.Cursor, L.Rows[2])
 	}
-	if L.Rows[0].Y != L.Card.Y+KaliTitleHeight+KaliMenuHeight+CodePadTop+(24-(asc+desc))/2+asc {
-		t.Errorf("code starts below both bars: %v", L.Rows[0].Y)
+	if L.LineHeight != 18 || L.Rows[0].Y != L.Card.Y+KaliTitleHeight+KaliMenuHeight+CodePadTop+(18-(asc+desc))/2+asc {
+		t.Errorf("kali line height %v, first row %v", L.LineHeight, L.Rows[0].Y)
 	}
 
 	in, _ = fixture(t, "dev-milestone", "🎉 done")

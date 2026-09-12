@@ -189,3 +189,61 @@ func TestTerminalOutput(t *testing.T) {
 		t.Errorf("light dim: %+v", light[0])
 	}
 }
+
+func TestKaliPromptStyle(t *testing.T) {
+	th, _ := theme.Get("kali")
+	out := Colorize("terminal", []string{
+		"$ echo hello world",
+		"hello world",
+		"$",
+	}, Options{Theme: th, PromptStyle: PromptStyleKali})
+	texts := make([]string, len(out))
+	for i, l := range out {
+		texts[i] = l.Text()
+	}
+	want := []string{"┌──(kali㉿kali)-[~]", "└─$ echo hello world", "hello world", "", "┌──(kali㉿kali)-[~]", "└─$ "}
+	if !reflect.DeepEqual(texts, want) {
+		t.Fatalf("expanded lines:\n got %q\nwant %q", texts, want)
+	}
+	top, bottom := out[0], out[1]
+	if top[0].Color != KaliGreen || top[1].Text != "kali㉿kali" || top[1].Color != KaliBlue || top[3].Text != "~" || top[3].Color != "" {
+		t.Errorf("top line: %+v", top)
+	}
+	if bottom[0].Text != "└─$" || bottom[0].Color != KaliGreen || bottom[2].Text != "echo" || bottom[2].Color != "#5ebdab" {
+		t.Errorf("bottom line: %+v", bottom)
+	}
+
+	// Identity from --prompt, and options stay plain in the Kali style.
+	root := Colorize("terminal", []string{"$ ls -la /etc"}, Options{Theme: th, PromptStyle: PromptStyleKali, Prompt: "root@box:/etc#"})
+	if root[0].Text() != "┌──(root㉿box)-[/etc]" || root[1].Text() != "└─# ls -la /etc" {
+		t.Errorf("root identity: %q %q", root[0].Text(), root[1].Text())
+	}
+	for _, sp := range root[1] {
+		if sp.Text == "-la" && sp.Color != "" {
+			t.Errorf("options should be plain in the Kali style: %+v", sp)
+		}
+	}
+
+	// Identity from the content itself, and already-Kali lines pass through.
+	own := Colorize("terminal", []string{
+		"mira@nimbus:~/api$ make test",
+		"┌──(kali㉿kali)-[~/src]",
+		"└─$ id",
+	}, Options{Theme: th, PromptStyle: PromptStyleKali})
+	if own[0].Text() != "┌──(mira㉿nimbus)-[~/api]" || own[1].Text() != "└─$ make test" || len(own) != 4 ||
+		own[2].Text() != "┌──(kali㉿kali)-[~/src]" || own[3].Text() != "└─$ id" {
+		t.Errorf("content identity / passthrough: %q", func() []string {
+			var s []string
+			for _, l := range own {
+				s = append(s, l.Text())
+			}
+			return s
+		}())
+	}
+	if id, ok := ParseIdentity("[user@host dir]$"); !ok || id.User != "user" || id.Host != "host" || id.Path != "dir" || id.Symbol != "$" {
+		t.Errorf("bracket identity: %+v", id)
+	}
+	if id, ok := ParseIdentity("nope"); ok || id != DefaultIdentity {
+		t.Errorf("bad identity: %+v %v", id, ok)
+	}
+}

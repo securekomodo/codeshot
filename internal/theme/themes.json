@@ -1582,6 +1582,110 @@
      }
     }
    ]
+  },
+  {
+   "id": "kali",
+   "label": "Kali Dark",
+   "mode": "dark",
+   "window": "#23252e",
+   "plain": {
+    "color": "#e6e6e6",
+    "backgroundColor": "#23252e"
+   },
+   "styles": [
+    {
+     "types": [
+      "comment",
+      "prolog",
+      "doctype",
+      "cdata"
+     ],
+     "style": {
+      "color": "#8a93a2"
+     }
+    },
+    {
+     "types": [
+      "punctuation"
+     ],
+     "style": {
+      "color": "#e6e6e6"
+     }
+    },
+    {
+     "types": [
+      "keyword",
+      "operator",
+      "atrule"
+     ],
+     "style": {
+      "color": "#367bf0"
+     }
+    },
+    {
+     "types": [
+      "function",
+      "class-name",
+      "tag",
+      "selector"
+     ],
+     "style": {
+      "color": "#5ebdab"
+     }
+    },
+    {
+     "types": [
+      "string",
+      "char",
+      "attr-value",
+      "url",
+      "inserted"
+     ],
+     "style": {
+      "color": "#fea44c"
+     }
+    },
+    {
+     "types": [
+      "number",
+      "boolean",
+      "constant",
+      "symbol"
+     ],
+     "style": {
+      "color": "#49aee6"
+     }
+    },
+    {
+     "types": [
+      "builtin",
+      "property",
+      "attr-name",
+      "variable",
+      "namespace"
+     ],
+     "style": {
+      "color": "#49aee6"
+     }
+    },
+    {
+     "types": [
+      "deleted",
+      "important"
+     ],
+     "style": {
+      "color": "#d41919"
+     }
+    },
+    {
+     "types": [
+      "regex"
+     ],
+     "style": {
+      "color": "#bf2e5d"
+     }
+    }
+   ]
   }
  ],
  "backdrops": [

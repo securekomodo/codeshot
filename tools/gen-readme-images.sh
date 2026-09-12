@@ -15,7 +15,7 @@ mkdir -p docs/themes docs/backdrops docs/presets docs/fonts
 
 # The two window styles, same session.
 ./codeshot --preset terminal-session --sample --scale 1 --width 560 --title nimbus -o docs/window-mac.png >/dev/null
-./codeshot --preset terminal-session --sample --scale 1 --width 560 --chrome kali --cursor --prompt 'kali@kali:~$' -o docs/window-kali.png >/dev/null
+./codeshot --preset terminal-session --sample --scale 1 --width 560 --chrome kali --cursor -o docs/window-kali.png >/dev/null
 
 # One thumbnail per theme (same snippet, neutral backdrop so the theme shows).
 for t in $(./codeshot --list themes | awk '{print $1}' | grep -v '^random$'); do

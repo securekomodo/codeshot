@@ -33,7 +33,7 @@ func TestFallbacks(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(fb) != 2 || !fb[0].Has('✔') || !fb[0].Has('○') || !fb[0].Has('├') || !fb[1].Has('🎉') {
+	if len(fb) != 3 || !fb[0].Has('✔') || !fb[0].Has('○') || !fb[0].Has('├') || !fb[1].Has('🎉') || !fb[2].Has('㉿') {
 		t.Fatalf("fallback coverage: %v", fb)
 	}
 	code, _ := Load("cascadia")

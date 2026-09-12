@@ -14,14 +14,20 @@ type Options struct {
 	Theme       *theme.Theme
 	Prompt      string // terminal modes: replaces the prompt ("" keeps the original)
 	PromptColor string // terminal modes: color of the prompt ("" = teal)
+	PromptStyle string // terminal modes: "" as written, or PromptStyleKali
 }
 
 // Colorize applies the per-line colorizer for a non-Prism render mode.
+// Terminal output in the Kali prompt style may have more lines than the
+// input, since each prompt becomes two lines plus a separator.
 func Colorize(mode string, lines []string, o Options) []Line {
 	pal := NewPalette(o.Theme)
-	c := colorizer{prompt: o.Prompt, promptColor: o.PromptColor, dim: pal.Dim, pal: pal}
+	c := colorizer{prompt: o.Prompt, promptColor: o.PromptColor, kali: o.PromptStyle == PromptStyleKali, dim: pal.Dim, pal: pal}
 	if c.promptColor == "" {
 		c.promptColor = Teal
+	}
+	if mode == preset.Terminal && c.kali {
+		return c.terminalKali(lines)
 	}
 	out := make([]Line, len(lines))
 	for i, l := range lines {
@@ -54,6 +60,7 @@ func Colorize(mode string, lines []string, o Options) []Line {
 type colorizer struct {
 	prompt      string
 	promptColor string
+	kali        bool // zsh-syntax-highlighting conventions: options stay plain
 	dim         Span
 	pal         Palette
 }

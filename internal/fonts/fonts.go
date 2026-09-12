@@ -32,6 +32,7 @@ var Registry = []Info{
 	{"ibm", "IBM Plex Mono", "fonts/ibm/IBMPlexMono-Regular.ttf"},
 	{"source", "Source Code Pro", "fonts/source/SourceCodePro-Regular.ttf"},
 	{"space", "Space Mono", "fonts/space/SpaceMono-Regular.ttf"},
+	{"dejavu", "DejaVu Sans Mono", "fonts/dejavu/DejaVuSansMono.ttf"},
 }
 
 // Default is the font id used when none is requested.
@@ -40,8 +41,9 @@ const Default = "cascadia"
 const interFile = "fonts/inter/Inter-Medium.ttf"
 
 // fallbackFiles are consulted, in order, for glyphs the code font lacks:
-// DejaVu Sans Mono for symbols such as ✓ ✗ ○ and Noto Emoji for emoji.
-var fallbackFiles = []string{"fonts/dejavu/DejaVuSansMono.ttf", "fonts/emoji/NotoEmoji-Regular.ttf"}
+// DejaVu Sans Mono for symbols such as ✓ ✗ ○, Noto Emoji for emoji, and a
+// one-glyph subset of Noto Sans KR for the ㉿ in Kali's prompt.
+var fallbackFiles = []string{"fonts/dejavu/DejaVuSansMono.ttf", "fonts/emoji/NotoEmoji-Regular.ttf", "fonts/kali/NotoSansKR-jueui.ttf"}
 
 // IDs returns the bundled font ids in registry order.
 func IDs() []string {

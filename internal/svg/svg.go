@@ -248,15 +248,25 @@ func (w *writer) chrome(c *layout.Chrome) {
 func (w *writer) kaliChrome(c *layout.Chrome) {
 	w.printf(`<rect x="%s" y="%s" width="%s" height="%s" fill="%s"/>`,
 		num(c.Bar.X), num(c.Bar.Y), num(c.Bar.W), num(c.Bar.H), layout.KaliBar)
-	w.printf(`<rect x="%s" y="%s" width="%s" height="1" fill="#ffffff" fill-opacity="0.06"/>`,
-		num(c.MenuBar.X), num(c.MenuBar.Y), num(c.MenuBar.W))
+	// Border lines under the title bar and under the menu bar.
+	for _, y := range []float64{c.MenuBar.Y, c.MenuBar.Y + c.MenuBar.H} {
+		w.printf(`<rect x="%s" y="%s" width="%s" height="1" fill="%s"/>`, num(c.Bar.X), num(y-1), num(c.Bar.W), layout.KaliSeparator)
+	}
+	if ic := c.Icon; ic != nil {
+		// A small terminal window: frame, title strip, and a ">_" prompt.
+		w.printf(`<rect x="%s" y="%s" width="%s" height="%s" rx="1.5" fill="none" stroke="%s" stroke-width="1.2"/>`,
+			num(ic.X+0.5), num(ic.Y+0.5), num(ic.W-1), num(ic.H-1), layout.KaliText)
+		w.printf(`<rect x="%s" y="%s" width="%s" height="2" fill="%s"/>`, num(ic.X+0.5), num(ic.Y+0.5), num(ic.W-1), layout.KaliText)
+		w.printf(`<path d="M%s,%s l2,2 l-2,2 M%s,%s h3" stroke="%s" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>`,
+			num(ic.X+3.5), num(ic.Y+5), num(ic.X+7.5), num(ic.Y+9.5), layout.KaliText)
+	}
 	for _, b := range c.Buttons {
 		r := float64(layout.KaliButtonR)
 		if b.Kind == "close" {
 			w.printf(`<circle cx="%s" cy="%s" r="%s" fill="%s"/>`, num(b.CX), num(b.CY), num(r), layout.KaliBlue)
-			d := r * 0.38
-			w.printf(`<path d="M%s,%s L%s,%s M%s,%s L%s,%s" stroke="#ffffff" stroke-width="1.6" stroke-linecap="round"/>`,
-				num(b.CX-d), num(b.CY-d), num(b.CX+d), num(b.CY+d), num(b.CX+d), num(b.CY-d), num(b.CX-d), num(b.CY+d))
+			d := r * 0.4
+			w.printf(`<path d="M%s,%s L%s,%s M%s,%s L%s,%s" stroke="%s" stroke-width="1.5" stroke-linecap="round"/>`,
+				num(b.CX-d), num(b.CY-d), num(b.CX+d), num(b.CY+d), num(b.CX+d), num(b.CY-d), num(b.CX-d), num(b.CY+d), layout.KaliBar)
 			continue
 		}
 		w.printf(`<circle cx="%s" cy="%s" r="%s" fill="%s" stroke="%s" stroke-width="1"/>`,

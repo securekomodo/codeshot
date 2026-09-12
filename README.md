@@ -15,7 +15,7 @@
 <p align="center">
   <img src="docs/showcase.gif" width="760" alt="Seventeen captioned cards in a row, one per preset: code snippet, terminal window, API response, error and log, database schema, SQL query, regex, git commit, project structure, environment variables, terminal session, developer milestone, HTTP request, git diff, test results, ASCII tree and performance metrics, each in its own theme, backdrop and font">
   <br>
-  <sub>Every frame was rendered by <code>codeshot</code>: all seventeen presets, both window styles, twelve themes, ten backdrops, seven fonts.</sub>
+  <sub>Every frame was rendered by <code>codeshot</code>: all seventeen presets, both window styles, thirteen themes, ten backdrops, eight fonts.</sub>
 </p>
 
 ## Install
@@ -71,6 +71,8 @@ Move the binary somewhere on your `PATH` and you are done. Pipe anything in (`gi
 <td align="center" valign="top"><a href="docs/themes/github.png"><img src="docs/themes/github.png" width="220" alt="github"></a><br><sub><code>--theme github</code></sub></td>
 <td align="center" valign="top"><a href="docs/themes/oneLight.png"><img src="docs/themes/oneLight.png" width="220" alt="oneLight"></a><br><sub><code>--theme oneLight</code></sub></td>
 <td align="center" valign="top"><a href="docs/themes/nightOwlLight.png"><img src="docs/themes/nightOwlLight.png" width="220" alt="nightOwlLight"></a><br><sub><code>--theme nightOwlLight</code></sub></td>
+</tr><tr>
+<td align="center" valign="top"><a href="docs/themes/kali.png"><img src="docs/themes/kali.png" width="220" alt="kali"></a><br><sub><code>--theme kali</code></sub></td>
 </tr></table>
 
 ## Pick a backdrop
@@ -98,7 +100,7 @@ Move the binary somewhere on your `PATH` and you are done. Pipe anything in (`gi
 <td align="center" valign="top"><a href="docs/window-kali.png"><img src="docs/window-kali.png" width="380" alt="Kali Linux terminal style"></a><br><sub><code>--chrome kali --cursor</code></sub></td>
 </tr></table>
 
-The Kali style brings the title bar with its controls on the right, the menu bar, a tighter corner radius and Kali blue in the prompt. Prompts written as <code>user@host:~$</code> are recognized as they are; <code>--prompt 'kali@kali:~$'</code> turns plain <code>$</code> prompts into them.
+The Kali style is the Kali Linux terminal as it ships: the title bar with the terminal icon and the controls on the right, the menu bar, terminal line spacing, Kali's own color scheme (<code>--theme kali</code>) in DejaVu Sans Mono (<code>--font dejavu</code>), and the two-line zsh prompt with the <code>㉿</code>. Plain <code>$</code> prompts and <code>user@host:~$</code> prompts are rewritten into it, a blank line separates commands, and sessions captured on Kali pass through untouched. <code>--prompt root@kali:/root#</code> changes who the prompt shows. Every other theme, backdrop and font still applies on top.
 
 ## Or no backdrop at all
 
@@ -127,6 +129,7 @@ Every face is bundled. Point <code>--font</code> at any <code>.ttf</code> or <co
 <td align="center" valign="top"><a href="docs/fonts/ibm.png"><img src="docs/fonts/ibm.png" width="220" alt="IBM Plex Mono"></a><br><sub>IBM Plex Mono · <code>--font ibm</code></sub></td>
 <td align="center" valign="top"><a href="docs/fonts/source.png"><img src="docs/fonts/source.png" width="220" alt="Source Code Pro"></a><br><sub>Source Code Pro · <code>--font source</code></sub></td>
 <td align="center" valign="top"><a href="docs/fonts/space.png"><img src="docs/fonts/space.png" width="220" alt="Space Mono"></a><br><sub>Space Mono · <code>--font space</code></sub></td>
+<td align="center" valign="top"><a href="docs/fonts/dejavu.png"><img src="docs/fonts/dejavu.png" width="220" alt="DejaVu Sans Mono"></a><br><sub>DejaVu Sans Mono · <code>--font dejavu</code></sub></td>
 </tr></table>
 
 ## Presets for the things developers actually screenshot
@@ -167,8 +170,9 @@ git diff | codeshot --title "fix: retry on 429" --copy
 # A whole shell session, with commands and output highlighted
 script -q /dev/null | tee session.txt; codeshot --preset terminal session.txt
 
-# The same session as a Kali Linux terminal, cursor waiting on the last line
-codeshot --chrome kali --cursor --prompt 'kali@kali:~$' session.txt
+# The same session as a Kali Linux terminal, two-line prompt, cursor waiting on the last line
+codeshot --chrome kali --cursor session.txt
+codeshot --chrome kali --prompt root@kali:/root# session.txt   # as root
 
 # The last ten commits, styled
 git log -10 | codeshot --title "git log" -o log.png
@@ -244,10 +248,10 @@ codeshot [flags] [FILE]        FILE omitted or "-" reads stdin; flags may come b
 --lang ID             language for the code presets (default: the preset's, or guessed
                       from the file name; --list languages)
 --theme ID            dracula (default), nightOwl, oneDark, palenight, oceanicNext, shadesOfPurple,
-                      vsDark, okaidia, gruvboxDark, github, oneLight, nightOwlLight, or random
+                      vsDark, okaidia, gruvboxDark, github, oneLight, nightOwlLight, kali, or random
 --bg ID               ember (default), darkroom, tide, dusk, citrus, slate, mint, rose, ink, paper, none,
                       or random (never none; the choice is printed to stderr)
---font ID|PATH        cascadia (default), jetbrains, fira, geist, ibm, source, space, or a .ttf/.otf file
+--font ID|PATH        cascadia (default), jetbrains, fira, geist, ibm, source, space, dejavu, or a .ttf/.otf file
 --title TEXT          window title (default: the preset's)
 --label TEXT          caption drawn in a pill above the window
 --label-size PX       caption font size, 8..64 (default 14)
@@ -257,11 +261,11 @@ codeshot [flags] [FILE]        FILE omitted or "-" reads stdin; flags may come b
 --radius PX           corner radius of the backdrop; the PNG's corners become transparent (default 0)
 --card-radius PX      corner radius of the window (default 12)
 --no-chrome           hide the title bar
---chrome STYLE        window style: mac (default) or kali, the Kali Linux terminal with its menu bar
+--chrome STYLE        window style: mac (default) or kali (Kali terminal: menu bar, two-line prompt, Kali colors)
 --cursor              draw a block cursor after the last line
 --no-shadow           no drop shadow
 --line-numbers BOOL   default on for the code and log presets
---prompt STR          terminal presets: replace the prompt ($, ❯, or a full kali@kali:~$); default keeps the content's own
+--prompt STR          terminal presets: replace the prompt ($, ❯, or user@host:~$); with --chrome kali, who the prompt shows
 --method M            api preset badge: GET POST PUT PATCH DELETE
 --status N            api preset badge: 200 201 204 400 401 403 404 422 500
 --no-badge            api preset: hide the badge
@@ -293,7 +297,7 @@ JavaScript, TypeScript, JSX, TSX, Python, Go, Rust, C, C++, Swift, Kotlin, JSON,
 Yes: <code>--font ./MyMono.ttf</code>. A family with bold and italic faces in the same file also gets real bold and italic; the bundled fonts are regular weight only.
 
 **Why is my emoji black and white?**
-Symbols and emoji fall back to DejaVu Sans Mono and monochrome Noto Emoji so they never render as boxes. Color emoji and CJK text need <code>--font</code> with a suitable file.
+Symbols and emoji fall back to DejaVu Sans Mono and monochrome Noto Emoji (and Kali's <code>㉿</code> to a one-glyph subset of Noto Sans KR) so they never render as boxes. Color emoji and CJK text need <code>--font</code> with a suitable file.
 
 **How big is the binary, and why?**
 About 16 MB: the highlighter's lexers, the resvg WebAssembly rasterizer, and the fonts. That is the price of needing nothing else installed.

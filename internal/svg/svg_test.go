@@ -127,7 +127,8 @@ func TestKaliChromeAndCursor(t *testing.T) {
 	bd, _ := theme.GetBackdrop(s.Backdrop)
 	L, _ := layout.Compute(layout.Input{Settings: s, Theme: th, Backdrop: bd, Code: code, Title: inter, Lines: []highlight.Line{{{Text: "$"}}}})
 	out := string(Render(L, Options{}))
-	for _, want := range []string{`fill="` + layout.KaliBar + `"`, `fill="` + layout.KaliBlue + `"`, `stroke="#ffffff" stroke-width="1.6"`, `>Actions</text>`, `>kali@kali: ~</text>`, `fill-opacity="0.85"/>`} {
+	for _, want := range []string{`fill="` + layout.KaliBar + `"`, `fill="` + layout.KaliBlue + `"`, `stroke="` + layout.KaliBar + `" stroke-width="1.5"`,
+		`height="1" fill="` + layout.KaliSeparator + `"`, `rx="1.5" fill="none"`, `>Actions</text>`, `>kali@kali: ~</text>`, `fill-opacity="0.85"/>`} {
 		if !strings.Contains(out, want) {
 			t.Errorf("missing %q", want)
 		}
