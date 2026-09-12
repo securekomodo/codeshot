@@ -136,6 +136,25 @@ func TestComputeBadgeWidthMilestone(t *testing.T) {
 		t.Errorf("wrap rows=%d gutter=%d", len(L.Rows), len(L.Gutter))
 	}
 
+	// A very long line wraps at the default max width instead of widening the card.
+	in, s = fixture(t, "terminal", "$ curl https://example.com/"+strings.Repeat("abcdefghij", 30))
+	L, _ = Compute(in)
+	if L.Card.W > settings.DefaultMaxWidth || len(L.Rows) < 3 {
+		t.Errorf("default max width: card %v rows %d", L.Card.W, len(L.Rows))
+	}
+	s.MaxWidth = 0
+	in.Settings = s
+	L, _ = Compute(in)
+	if L.Card.W < 2000 || len(L.Rows) != 1 {
+		t.Errorf("unlimited: card %v rows %d", L.Card.W, len(L.Rows))
+	}
+	s.MaxWidth, s.Width = 0, 500
+	in.Settings = s
+	L, _ = Compute(in)
+	if L.Card.W != 500 || len(L.Rows) < 5 {
+		t.Errorf("fixed width wins: card %v rows %d", L.Card.W, len(L.Rows))
+	}
+
 	in, _ = fixture(t, "dev-milestone", "🎉 done")
 	L, _ = Compute(in)
 	if L.Chrome != nil || L.FontSize != 26 || L.LineHeight != 39 || !L.Center || L.Card.X != 64 || len(L.Gutter) != 0 {

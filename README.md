@@ -162,9 +162,11 @@ tree -L 2 --noreport | codeshot --preset project-structure --bg ink
 # Big, centered, no window: an announcement card
 echo "🎉 v2.0 is out" | codeshot --preset dev-milestone --bg dusk
 
-# Long lines? Wrap them, or fix the width
-codeshot --wrap 80 server.go
+# Long lines wrap so the card stays at most 768px wide. Change the cap, fix the width, or wrap by column
+codeshot --max-width 1000 server.go
 codeshot --width 900 server.go
+codeshot --wrap 80 server.go
+codeshot --max-width 0 server.go        # no cap: the card fits the longest line
 ```
 
 ## How it works
@@ -219,8 +221,9 @@ codeshot [flags] [FILE]        FILE omitted or "-" reads stdin; flags may come b
 --no-badge            api preset: hide the badge
 --flags STR           regex preset: badge flags (default gi)
 --scale N             PNG pixel ratio, 1..8 (default 2)
---wrap COLS           soft-wrap at this many columns (default: fit the longest line)
+--max-width PX        wrap long lines so the card is at most this wide (default 768; 0 = unlimited)
 --width PX            fixed card width, wrapping to fit
+--wrap COLS           soft-wrap at this many columns
 --embed-fonts BOOL    SVG: inline the fonts as data URIs (default true)
 --copy                copy the PNG to the clipboard (macOS, Wayland/X11 Linux, Windows)
 --list WHAT           themes, backdrops, fonts, languages, presets
@@ -245,6 +248,9 @@ Symbols and emoji fall back to DejaVu Sans Mono and monochrome Noto Emoji so the
 
 **How big is the binary, and why?**
 About 16 MB: the highlighter's lexers, the resvg WebAssembly rasterizer, and the fonts. That is the price of needing nothing else installed.
+
+**A log line was 400 characters. Why isn't my image 400 characters wide?**
+Long lines soft-wrap so the card is at most 768px wide, the width of a comfortable 80-column terminal. Raise the cap with <code>--max-width</code>, fix the width with <code>--width</code>, or pass <code>--max-width 0</code> to let the card grow to the longest line.
 
 **How long does a render take?**
 Roughly a second for a typical snippet at 2x. Bigger scales cost more pixels.

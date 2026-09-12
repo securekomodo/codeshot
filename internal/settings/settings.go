@@ -35,10 +35,16 @@ type Settings struct {
 	ShowBadge bool
 	Flags     string // regex preset badge
 
-	Scale int // PNG pixel ratio
-	Wrap  int // soft-wrap at this many columns; 0 = off
-	Width int // fixed card width in px; 0 = fit content
+	Scale    int // PNG pixel ratio
+	Wrap     int // soft-wrap at this many columns; 0 = off
+	Width    int // fixed card width in px; 0 = fit content
+	MaxWidth int // wrap so the card is at most this wide; 0 = unlimited
 }
+
+// DefaultMaxWidth is the widest a card gets unless --width, --wrap or
+// --max-width says otherwise: long lines soft-wrap instead of producing a
+// screenshot as wide as the longest URL in a log.
+const DefaultMaxWidth = 768
 
 // Allowed values for the badge and prompt options.
 var (
@@ -67,6 +73,7 @@ func Defaults(p preset.Preset) Settings {
 		Status:          "200",
 		ShowBadge:       true,
 		Scale:           2,
+		MaxWidth:        DefaultMaxWidth,
 	}
 	if s.Language == "" {
 		s.Language = "javascript"
@@ -101,11 +108,14 @@ func (s *Settings) Validate() error {
 	if s.Scale < 1 || s.Scale > 8 {
 		return fmt.Errorf("scale %d out of range 1..8", s.Scale)
 	}
-	if s.Wrap < 0 || s.Width < 0 {
-		return fmt.Errorf("wrap and width must not be negative")
+	if s.Wrap < 0 || s.Width < 0 || s.MaxWidth < 0 {
+		return fmt.Errorf("wrap, width and max-width must not be negative")
 	}
 	if s.Wrap > 0 && s.Width > 0 {
 		return fmt.Errorf("use either --wrap or --width, not both")
+	}
+	if s.MaxWidth > 0 && s.MaxWidth < 200 {
+		return fmt.Errorf("max-width %d is too small (200 or more, or 0 for unlimited)", s.MaxWidth)
 	}
 	if !contains(Methods, s.Method) {
 		return fmt.Errorf("unknown method %q (one of %s)", s.Method, strings.Join(Methods, ", "))

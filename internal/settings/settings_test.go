@@ -9,6 +9,9 @@ import (
 func TestDefaults(t *testing.T) {
 	code, _ := preset.Get("code")
 	s := Defaults(code)
+	if s.MaxWidth != DefaultMaxWidth {
+		t.Errorf("max width default = %d", s.MaxWidth)
+	}
 	if s.Theme != "dracula" || s.Backdrop != "ember" || s.Font != "cascadia" || s.Language != "javascript" ||
 		s.Title != "snippet.js" || s.Padding != 48 || s.FontSize != 15 || !s.ShowChrome || !s.ShowLineNumbers ||
 		!s.Shadow || !s.ShowBackground || s.Prompt != "$" || s.Scale != 2 || s.Flags != "" {
@@ -51,6 +54,8 @@ func TestValidate(t *testing.T) {
 		func(s *Settings) { s.Wrap, s.Width = 80, 768 },
 		func(s *Settings) { s.Method = "TRACE" },
 		func(s *Settings) { s.Status = "418" },
+		func(s *Settings) { s.MaxWidth = 100 },
+		func(s *Settings) { s.MaxWidth = -1 },
 	}
 	for i, f := range bad {
 		s := Defaults(code)

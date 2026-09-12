@@ -175,15 +175,20 @@ func Compute(in Input) (*Layout, error) {
 		badgeW = badge.Box.W
 	}
 
+	// Columns available at a given card width.
+	colsAt := func(width float64) int {
+		return max(1, int((width-2*CodePadX-gutterW)/cell))
+	}
 	cols := 0
+	capW := float64(MaxCardWidth)
 	switch {
 	case s.Wrap > 0:
 		cols = s.Wrap
 	case s.Width > 0:
-		cols = int((float64(s.Width) - 2*CodePadX - gutterW) / cell)
-		if cols < 1 {
-			cols = 1
-		}
+		cols = colsAt(float64(s.Width))
+	case s.MaxWidth > 0:
+		cols = colsAt(float64(s.MaxWidth))
+		capW = float64(s.MaxWidth)
 	}
 	rows := wrapAll(in.Lines, cols)
 
@@ -207,7 +212,7 @@ func Compute(in Input) (*Layout, error) {
 			titleW := math.Min(titleFont.Width(s.DisplayTitle(), TitleSize), MaxTitleRoom)
 			minW = math.Ceil(2*inset + titleW)
 		}
-		cardW = math.Min(math.Max(cardW, minW), MaxCardWidth)
+		cardW = math.Min(math.Max(cardW, minW), capW)
 	}
 
 	barH := 0.0

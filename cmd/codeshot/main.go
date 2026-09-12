@@ -47,7 +47,7 @@ type usageError struct{ error }
 
 type options struct {
 	output, presetKey, lang, themeID, bg, font, title, prompt, method, status, flags, lineNumbers, list string
-	padding, fontSize, scale, wrap, width                                                               int
+	padding, fontSize, scale, wrap, width, maxWidth                                                     int
 	sample, noBG, noChrome, noShadow, noBadge, embedFonts, copy, showVersion                            bool
 }
 
@@ -79,6 +79,7 @@ func run(args []string, stdin io.Reader, stdout io.Writer) error {
 	fs.IntVar(&o.scale, "scale", 2, "PNG pixel ratio, 1..8")
 	fs.IntVar(&o.wrap, "wrap", 0, "soft-wrap lines at this many columns (0 = fit the longest line)")
 	fs.IntVar(&o.width, "width", 0, "fixed card width in px, wrapping to fit (0 = fit content)")
+	fs.IntVar(&o.maxWidth, "max-width", settings.DefaultMaxWidth, "wrap long lines so the card is at most this wide in px (0 = unlimited)")
 	fs.BoolVar(&o.embedFonts, "embed-fonts", true, "SVG output: embed the fonts as data URIs")
 	fs.BoolVar(&o.copy, "copy", false, "copy the PNG to the clipboard")
 	fs.StringVar(&o.list, "list", "", "print options and exit: themes, backdrops, fonts, languages, presets")
@@ -134,7 +135,7 @@ func run(args []string, stdin io.Reader, stdout io.Writer) error {
 	if seen["flags"] {
 		s.Flags = o.flags
 	}
-	s.Scale, s.Wrap, s.Width = o.scale, o.wrap, o.width
+	s.Scale, s.Wrap, s.Width, s.MaxWidth = o.scale, o.wrap, o.width, o.maxWidth
 
 	file := ""
 	if len(positional) == 1 && positional[0] != "-" {
