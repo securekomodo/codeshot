@@ -41,7 +41,7 @@ const (
 
 // usageText is the grouped help. Every flag the program registers must
 // appear here; a test enforces that, so the two cannot drift apart.
-const usageText = `codeshot %s — ` + tagline + `
+const usageTemplate = `codeshot %s — ` + tagline + `
 
 Usage:
   codeshot [flags] [FILE]
@@ -58,8 +58,11 @@ Examples:
   codeshot --list themes                 see what is available
 
 Input:
-  --preset KEY           tool preset (default code); --list presets
-  --lang ID              language for the code presets; --list languages
+  --preset KEY           force the format instead of detecting it, one of:
+%s
+  --lang ID              language for the --preset code snippets, one of:
+%s
+                         any other lexer name works too, such as bash, toml or dockerfile
   --sample               render the preset's built-in sample instead of reading input
 
 Appearance:
@@ -109,6 +112,26 @@ Author:
   ` + author + `
   ` + projectURL + `
 `
+
+// usage fills the template from the preset and language tables, so the help
+// always lists exactly what the program accepts.
+func usage(version string) string {
+	var presets, langs strings.Builder
+	for i, p := range preset.All {
+		if i > 0 {
+			presets.WriteByte('\n')
+		}
+		fmt.Fprintf(&presets, "                           %-18s %s", p.Key, p.Desc)
+	}
+	ids := highlight.LanguageIDs()
+	for i := 0; i < len(ids); i += 9 {
+		if i > 0 {
+			langs.WriteByte('\n')
+		}
+		fmt.Fprintf(&langs, "                           %s", strings.Join(ids[i:min(i+9, len(ids))], " "))
+	}
+	return fmt.Sprintf(usageTemplate, version, presets.String(), langs.String())
+}
 
 // version is the release this binary was built from. Release builds set it
 // with -ldflags "-X main.version=1.2.3"; otherwise it is taken from the
@@ -190,7 +213,7 @@ func newFlagSet(o *options) *flag.FlagSet {
 	fs.BoolVar(&o.copy, "copy", false, "copy the PNG to the clipboard")
 	fs.StringVar(&o.list, "list", "", "print options and exit: themes, backdrops, fonts, languages, presets")
 	fs.BoolVar(&o.showVersion, "version", false, "print the version and exit")
-	fs.Usage = func() { fmt.Fprintf(os.Stdout, usageText, version) }
+	fs.Usage = func() { fmt.Fprint(os.Stdout, usage(version)) }
 	return fs
 }
 
@@ -445,7 +468,7 @@ func list(w io.Writer, what string) error {
 		fmt.Fprintln(w, "(any other chroma lexer name works too, e.g. bash, diff, toml)")
 	case "presets":
 		for _, p := range preset.All {
-			fmt.Fprintf(w, "%-18s %-9s %s\n", p.Key, p.Render, p.Title)
+			fmt.Fprintf(w, "%-18s %-9s %-16s %s\n", p.Key, p.Render, p.Title, p.Desc)
 		}
 	default:
 		return usageError{fmt.Errorf("--list wants themes, backdrops, fonts, languages or presets")}

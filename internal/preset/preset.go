@@ -32,6 +32,7 @@ type Preset struct {
 	Title    string // default window title
 	Language string // Prism language for Render == Prism
 	Prompt   string // default prompt for Render == Terminal
+	Desc     string // one line, shown by --help and --list presets
 }
 
 // Default is the preset used when none is requested.
@@ -39,23 +40,23 @@ const Default = "code"
 
 // All lists the presets in display order.
 var All = []Preset{
-	{"code", Prism, "snippet.js", "javascript", ""},
-	{"terminal", Terminal, "Terminal", "", "$"},
-	{"api", Prism, "response.json", "json", ""},
-	{"error-log", Log, "server.log", "", ""},
-	{"db-schema", Prism, "schema.sql", "sql", ""},
-	{"sql-query", Prism, "query.sql", "sql", ""},
-	{"regex", Prism, "pattern.re", "regex", ""},
-	{"git-commit", Git, "git log", "", ""},
-	{"project-structure", Tree, "structure", "", ""},
-	{"env-vars", Env, ".env", "", ""},
-	{"terminal-session", Terminal, "Session", "", "$"},
-	{"dev-milestone", Milestone, "milestone", "", ""},
-	{"http-request", HTTP, "request.http", "", ""},
-	{"git-diff", Diff, "changes.diff", "", ""},
-	{"test-results", Test, "npm test", "", ""},
-	{"ascii-tree", Tree, "tree", "", ""},
-	{"perf-metrics", Metrics, "lighthouse", "", ""},
+	{"code", Prism, "snippet.js", "javascript", "", "a code snippet, highlighted by --lang"},
+	{"terminal", Terminal, "Terminal", "", "$", "a shell session"},
+	{"api", Prism, "response.json", "json", "", "a JSON response, with a status badge"},
+	{"error-log", Log, "server.log", "", "", "server logs, colored by level"},
+	{"db-schema", Prism, "schema.sql", "sql", "", "SQL schema definitions"},
+	{"sql-query", Prism, "query.sql", "sql", "", "a SQL query"},
+	{"regex", Prism, "pattern.re", "regex", "", "regular expressions"},
+	{"git-commit", Git, "git log", "", "", "git log output"},
+	{"project-structure", Tree, "structure", "", "", "a directory tree"},
+	{"env-vars", Env, ".env", "", "", "KEY=VALUE lines"},
+	{"terminal-session", Terminal, "Session", "", "$", "a longer shell session"},
+	{"dev-milestone", Milestone, "milestone", "", "", "large centered text, no window"},
+	{"http-request", HTTP, "request.http", "", "", "an HTTP request"},
+	{"git-diff", Diff, "changes.diff", "", "", "a unified diff"},
+	{"test-results", Test, "npm test", "", "", "test output, colored by pass and fail"},
+	{"ascii-tree", Tree, "tree", "", "", "any box-drawing tree"},
+	{"perf-metrics", Metrics, "lighthouse", "", "", "labelled scores and timings"},
 }
 
 //go:embed samples

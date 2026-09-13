@@ -3,7 +3,9 @@ package main
 import (
 	"bytes"
 	"flag"
-	"fmt"
+
+	"github.com/securekomodo/codeshot/internal/highlight"
+	"github.com/securekomodo/codeshot/internal/preset"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -114,7 +116,7 @@ func TestListAndUsageErrors(t *testing.T) {
 // The grouped help is written by hand, so make sure it documents every flag
 // the program actually registers.
 func TestHelpDocumentsEveryFlag(t *testing.T) {
-	help := fmt.Sprintf(usageText, "1.0.0")
+	help := usage("1.0.0")
 	var o options
 	n := 0
 	newFlagSet(&o).VisitAll(func(f *flag.Flag) {
@@ -125,6 +127,16 @@ func TestHelpDocumentsEveryFlag(t *testing.T) {
 	})
 	if n < 30 {
 		t.Fatalf("expected the full flag set, got %d flags", n)
+	}
+	for _, p := range preset.All {
+		if !strings.Contains(help, p.Key) || !strings.Contains(help, p.Desc) {
+			t.Errorf("preset %s is not listed in the help text", p.Key)
+		}
+	}
+	for _, id := range highlight.LanguageIDs() {
+		if !strings.Contains(help, id) {
+			t.Errorf("language %s is not listed in the help text", id)
+		}
 	}
 	for _, want := range []string{author, projectURL, tagline, "Usage:", "Examples:", "Author:"} {
 		if !strings.Contains(help, want) {
