@@ -9,8 +9,24 @@
 *.prof
 coverage.out
 
-# editors and OS
+# editors, tooling and OS
 .DS_Store
 .idea/
 .vscode/
 *.swp
+.cursor/
+.cursorrules
+.continue/
+.windsurf/
+.aider*
+.claude/
+CLAUDE.md
+AGENTS.md
+.github/copilot-instructions.md
+
+# caches and scratch
+.cache/
+*.cache
+__pycache__/
+.venv/
+node_modules/
