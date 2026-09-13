@@ -3,7 +3,7 @@ package layout
 import (
 	"unicode/utf8"
 
-	"codeshot/internal/highlight"
+	"github.com/securekomodo/codeshot/internal/highlight"
 )
 
 // wrapped is one visual row: its spans and the logical line number it

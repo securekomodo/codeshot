@@ -21,15 +21,25 @@
 
 ## Install
 
-Go 1.25 or newer is the only requirement. The fonts and the rasterizer are inside the binary.
+```sh
+brew install securekomodo/tap/codeshot            # macOS and Linux
+go install github.com/securekomodo/codeshot/cmd/codeshot@latest
+```
+
+Or download a binary from the [releases](https://github.com/securekomodo/codeshot/releases), or build from source with Go 1.25 or newer:
 
 ```sh
 git clone https://github.com/securekomodo/codeshot.git && cd codeshot
 go build -o codeshot ./cmd/codeshot
-./codeshot main.go        # → main-go.png, ready to paste anywhere
 ```
 
-Move the binary somewhere on your `PATH` and you are done. Pipe anything in (`git diff | codeshot`), point it at a file, or add `--copy` to skip the file and go straight to the clipboard.
+Then point it at something:
+
+```sh
+codeshot main.go          # → main-go.png, ready to paste anywhere
+```
+
+Pipe anything in (`git diff | codeshot`), point it at a file, or add `--copy` to skip the file and go straight to the clipboard.
 
 ## Good to know
 

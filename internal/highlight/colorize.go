@@ -5,8 +5,8 @@ import (
 	"strconv"
 	"strings"
 
-	"codeshot/internal/preset"
-	"codeshot/internal/theme"
+	"github.com/securekomodo/codeshot/internal/preset"
+	"github.com/securekomodo/codeshot/internal/theme"
 )
 
 // Options tune the colorizers.

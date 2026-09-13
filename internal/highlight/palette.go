@@ -1,6 +1,6 @@
 package highlight
 
-import "codeshot/internal/theme"
+import "github.com/securekomodo/codeshot/internal/theme"
 
 // Palette is the set of colors the line colorizers may use: the theme's
 // own token colors where the theme defines them, and the accent palette

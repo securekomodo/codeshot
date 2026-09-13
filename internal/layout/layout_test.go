@@ -6,11 +6,11 @@ import (
 	"strings"
 	"testing"
 
-	"codeshot/internal/fonts"
-	"codeshot/internal/highlight"
-	"codeshot/internal/preset"
-	"codeshot/internal/settings"
-	"codeshot/internal/theme"
+	"github.com/securekomodo/codeshot/internal/fonts"
+	"github.com/securekomodo/codeshot/internal/highlight"
+	"github.com/securekomodo/codeshot/internal/preset"
+	"github.com/securekomodo/codeshot/internal/settings"
+	"github.com/securekomodo/codeshot/internal/theme"
 )
 
 func TestPrepareText(t *testing.T) {

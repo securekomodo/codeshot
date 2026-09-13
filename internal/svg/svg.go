@@ -11,11 +11,11 @@ import (
 	"strconv"
 	"strings"
 
-	"codeshot/internal/fonts"
-	"codeshot/internal/highlight"
-	"codeshot/internal/layout"
-	"codeshot/internal/settings"
-	"codeshot/internal/theme"
+	"github.com/securekomodo/codeshot/internal/fonts"
+	"github.com/securekomodo/codeshot/internal/highlight"
+	"github.com/securekomodo/codeshot/internal/layout"
+	"github.com/securekomodo/codeshot/internal/settings"
+	"github.com/securekomodo/codeshot/internal/theme"
 )
 
 // Options control serialization.

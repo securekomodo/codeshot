@@ -17,21 +17,34 @@ import (
 	"math/rand/v2"
 	"os"
 	"path/filepath"
+	"runtime/debug"
 	"slices"
 	"strconv"
 	"strings"
 
-	"codeshot/internal/clipboard"
-	"codeshot/internal/fonts"
-	"codeshot/internal/highlight"
-	"codeshot/internal/preset"
-	"codeshot/internal/render"
-	"codeshot/internal/settings"
-	"codeshot/internal/sniff"
-	"codeshot/internal/theme"
+	"github.com/securekomodo/codeshot/internal/clipboard"
+	"github.com/securekomodo/codeshot/internal/fonts"
+	"github.com/securekomodo/codeshot/internal/highlight"
+	"github.com/securekomodo/codeshot/internal/preset"
+	"github.com/securekomodo/codeshot/internal/render"
+	"github.com/securekomodo/codeshot/internal/settings"
+	"github.com/securekomodo/codeshot/internal/sniff"
+	"github.com/securekomodo/codeshot/internal/theme"
 )
 
-const version = "0.1.0"
+// version is the release this binary was built from. Release builds set it
+// with -ldflags "-X main.version=1.2.3"; otherwise it is taken from the
+// module version Go records for "go install", and falls back to "dev".
+var version = "dev"
+
+func init() {
+	if version != "dev" {
+		return
+	}
+	if bi, ok := debug.ReadBuildInfo(); ok && bi.Main.Version != "" && bi.Main.Version != "(devel)" {
+		version = bi.Main.Version
+	}
+}
 
 func main() {
 	if err := run(os.Args[1:], os.Stdin, os.Stdout); err != nil {

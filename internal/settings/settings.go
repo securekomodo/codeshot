@@ -7,9 +7,9 @@ import (
 	"regexp"
 	"strings"
 
-	"codeshot/internal/fonts"
-	"codeshot/internal/preset"
-	"codeshot/internal/theme"
+	"github.com/securekomodo/codeshot/internal/fonts"
+	"github.com/securekomodo/codeshot/internal/preset"
+	"github.com/securekomodo/codeshot/internal/theme"
 )
 
 // Settings holds every rendering option, plus the CLI-only Scale, Wrap

@@ -7,7 +7,7 @@ import (
 	"regexp"
 	"strings"
 
-	"codeshot/internal/preset"
+	"github.com/securekomodo/codeshot/internal/preset"
 )
 
 var (

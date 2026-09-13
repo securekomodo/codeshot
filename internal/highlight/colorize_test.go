@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"codeshot/internal/theme"
+	"github.com/securekomodo/codeshot/internal/theme"
 )
 
 func TestColorizers(t *testing.T) {
@@ -30,7 +30,7 @@ func TestColorizers(t *testing.T) {
 		{"git", "    fix: thing", Line{p("    fix: thing")}},
 		{"tree", "├── app/", Line{d("├── "), c("app/", Amber)}},
 		{"tree", "│   └── page.tsx", Line{d("│   └── "), c("page.tsx", "")}},
-		{"tree", "codeshot/", Line{d(""), c("codeshot/", Amber)}},
+		{"tree", "github.com/securekomodo/codeshot/", Line{d(""), c("github.com/securekomodo/codeshot/", Amber)}},
 		{"env", "# Database", Line{d("# Database")}},
 		{"env", "", Line{d("")}},
 		{"env", "DATABASE_URL=postgres://x", Line{c("DATABASE_URL", Teal), d("="), c("postgres://x", Amber)}},

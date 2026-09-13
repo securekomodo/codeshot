@@ -6,7 +6,7 @@ import (
 	"github.com/alecthomas/chroma/v2"
 	"github.com/alecthomas/chroma/v2/lexers"
 
-	"codeshot/internal/theme"
+	"github.com/securekomodo/codeshot/internal/theme"
 )
 
 // Language is one entry of the built-in language list.

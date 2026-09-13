@@ -4,8 +4,8 @@ import (
 	"strings"
 	"testing"
 
-	"codeshot/internal/preset"
-	"codeshot/internal/theme"
+	"github.com/securekomodo/codeshot/internal/preset"
+	"github.com/securekomodo/codeshot/internal/theme"
 )
 
 func find(lines []Line, text string) (Span, bool) {

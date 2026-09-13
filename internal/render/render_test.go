@@ -8,9 +8,9 @@ import (
 	"strings"
 	"testing"
 
-	"codeshot/internal/preset"
-	"codeshot/internal/settings"
-	"codeshot/internal/theme"
+	"github.com/securekomodo/codeshot/internal/preset"
+	"github.com/securekomodo/codeshot/internal/settings"
+	"github.com/securekomodo/codeshot/internal/theme"
 )
 
 // Every preset with its sample, in every theme, must lay out, serialize and

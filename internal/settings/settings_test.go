@@ -3,7 +3,7 @@ package settings
 import (
 	"testing"
 
-	"codeshot/internal/preset"
+	"github.com/securekomodo/codeshot/internal/preset"
 )
 
 func TestDefaults(t *testing.T) {

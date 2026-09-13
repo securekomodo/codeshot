@@ -13,7 +13,7 @@ import (
 	"golang.org/x/image/font/sfnt"
 	"golang.org/x/image/math/fixed"
 
-	"codeshot/assets"
+	"github.com/securekomodo/codeshot/assets"
 )
 
 // Info describes one bundled code font.
