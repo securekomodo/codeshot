@@ -19,21 +19,47 @@
   <sub>Every frame was rendered by <code>codeshot</code>: both window styles, thirteen themes, ten backdrops, eight fonts.</sub>
 </p>
 
+> [!NOTE]
+> **Help make `brew install codeshot` official.**
+> Homebrew's core repository only accepts projects with **75 stars** (or 30 forks, or 30 watchers).
+> If this is useful to you, a star moves it one closer:
+> [![stars so far](https://img.shields.io/github/stars/securekomodo/codeshot?style=flat-square&label=stars%20so%20far&color=f4a259)](https://github.com/securekomodo/codeshot/stargazers)
+> Until it lands there, it installs from the tap in one line, below.
+
 ## Install
 
+### Homebrew
+
+macOS and Linux. Nothing else to install.
+
 ```sh
-brew install securekomodo/tap/codeshot            # macOS and Linux
+brew install securekomodo/tap/codeshot
+```
+
+<p align="center">
+  <img src="docs/install.png" width="700" alt="A terminal showing brew install securekomodo/tap/codeshot, then codeshot main.go producing main-go.png">
+</p>
+
+### Go
+
+Puts the binary in your `GOBIN`. Needs Go 1.25 or newer.
+
+```sh
 go install github.com/securekomodo/codeshot/cmd/codeshot@latest
 ```
 
-Or download a binary from the [releases](https://github.com/securekomodo/codeshot/releases), or build from source with Go 1.25 or newer:
+### Download a binary
+
+Prebuilt for macOS, Linux and Windows on the [releases page](https://github.com/securekomodo/codeshot/releases). Unpack it and put `codeshot` on your `PATH`.
+
+### From source
 
 ```sh
 git clone https://github.com/securekomodo/codeshot.git && cd codeshot
 go build -o codeshot ./cmd/codeshot
 ```
 
-Then point it at something:
+## First run
 
 ```sh
 codeshot main.go          # → main-go.png, ready to paste anywhere

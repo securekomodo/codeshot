@@ -9,6 +9,20 @@ mkdir -p docs/themes docs/backdrops docs/presets docs/fonts
 
 # The animated hero is built separately by tools/gen-showcase.sh (needs ffmpeg).
 
+# The install demo under the Homebrew section: rendered by codeshot itself.
+demo=$(mktemp)
+cat > "$demo" <<'DEMO'
+$ brew install securekomodo/tap/codeshot
+==> Fetching securekomodo/tap/codeshot
+==> Installing codeshot from securekomodo/tap
+🍺  /opt/homebrew/Cellar/codeshot/1.0.1: 6 files, 14.9MB
+
+$ codeshot main.go
+main-go.png
+DEMO
+./codeshot --preset terminal --bg dusk --scale 2 --width 700 --title codeshot -o docs/install.png "$demo" >/dev/null
+rm -f "$demo"
+
 # No backdrop at all (transparent PNG), and rounded backdrop corners.
 ./codeshot --preset code --sample --transparent --title shoot.js -o docs/transparent.png >/dev/null
 ./codeshot --preset code --sample --radius 28 --bg dusk --title shoot.js -o docs/rounded.png >/dev/null

@@ -13,8 +13,8 @@
 class Codeshot < Formula
   desc "Turn code into a beautiful image, from your terminal"
   homepage "https://github.com/securekomodo/codeshot"
-  url "https://github.com/securekomodo/codeshot/archive/refs/tags/v0.0.0.tar.gz"
-  sha256 "0000000000000000000000000000000000000000000000000000000000000000"
+  url "https://github.com/securekomodo/codeshot/archive/refs/tags/v1.0.1.tar.gz"
+  sha256 "e32144149e7427e03c9706803127a561c62f4832bcbe24e30e45b846ad4154f6"
   # MIT for the program; the bundled fonts keep their own licenses.
   license all_of: ["MIT", "OFL-1.1", "Bitstream-Vera"]
   head "https://github.com/securekomodo/codeshot.git", branch: "main"
@@ -22,7 +22,8 @@ class Codeshot < Formula
   depends_on "go" => :build
 
   def install
-    system "go", "build", *std_go_args(ldflags: "-s -w -X main.version=#{version}")
+    # std_go_args already supplies -s -w and the output path.
+    system "go", "build", *std_go_args(ldflags: "-X main.version=#{version}"), "./cmd/codeshot"
   end
 
   test do
@@ -31,7 +32,7 @@ class Codeshot < Formula
     # Rendering is self-contained: no network, no browser, no system fonts.
     system bin/"codeshot", "--preset", "code", "--sample", "--output", testpath/"sample.png"
     assert_path_exists testpath/"sample.png"
-    assert_equal "\x89PNG\r\n\x1a\n", (testpath/"sample.png").binread(8)
+    assert_equal "\x89PNG\r\n\x1a\n".b, (testpath/"sample.png").binread(8)
 
     system bin/"codeshot", "--preset", "git-diff", "--sample", "--output", testpath/"sample.svg"
     assert_match "<svg", (testpath/"sample.svg").read
