@@ -32,6 +32,84 @@ import (
 	"github.com/securekomodo/codeshot/internal/theme"
 )
 
+// Credits shown by --version and at the foot of --help.
+const (
+	author     = "Bryan Smith (@securekomodo) · Redline Cyber Security"
+	projectURL = "https://github.com/securekomodo/codeshot"
+	tagline    = "turn code into a beautiful image, from your terminal"
+)
+
+// usageText is the grouped help. Every flag the program registers must
+// appear here; a test enforces that, so the two cannot drift apart.
+const usageText = `codeshot %s — ` + tagline + `
+
+Usage:
+  codeshot [flags] [FILE]
+
+  Reads FILE, or stdin when FILE is omitted or "-". Flags may come before
+  or after FILE.
+
+Examples:
+  codeshot main.go                       render a file; the language comes from its name
+  git diff | codeshot                    pipe anything in; the preset is detected
+  codeshot --preset terminal --sample    try a preset with its built-in sample
+  codeshot --theme nightOwl --bg tide x.go
+  codeshot --copy notes.md               straight to the clipboard
+  codeshot --list themes                 see what is available
+
+Input:
+  --preset KEY           tool preset (default code); --list presets
+  --lang ID              language for the code presets; --list languages
+  --sample               render the preset's built-in sample instead of reading input
+
+Appearance:
+  --theme ID             syntax theme (default dracula), or random; --list themes
+  --bg ID                backdrop (default ember), or random; --list backdrops (alias --backdrop)
+  --font ID|PATH         code font (default cascadia), or a .ttf/.otf file; --list fonts
+  --font-size N          code font size in px, 11..28 (default 15)
+  --padding N            space around the window in px, 0..160 (default 48)
+  --radius N             corner radius of the backdrop in px (default 0)
+  --card-radius N        corner radius of the window in px (default 12)
+  --transparent          no backdrop: a transparent PNG (alias --no-bg)
+  --watermark X          overlay on the window: swirl, none, or an image file
+  --watermark-opacity N  opacity of an image watermark, 0..1 (default 0.12)
+
+Window:
+  --chrome STYLE         window style: mac (default) or kali
+  --title TEXT           window title (default: the preset's)
+  --label TEXT           caption drawn in a pill above the window
+  --label-size N         caption font size in px, 8..64 (default 14)
+  --no-chrome            hide the title bar
+  --no-shadow            no drop shadow
+  --cursor               draw a block cursor after the last line
+
+Content:
+  --line-numbers BOOL    line-number gutter (default: on for the code and log presets)
+  --wrap COLS            soft-wrap at this many columns
+  --width PX             fixed window width in px
+  --max-width PX         wrap so the window is at most this wide (default 768; 0 = off)
+  --prompt STR           terminal presets: replace the prompt
+  --method M             api preset badge: GET, POST, PUT, PATCH, DELETE
+  --status N             api preset badge: 200, 201, 204, 400, 401, 403, 404, 422, 500
+  --no-badge             api preset: hide the badge
+  --flags STR            regex preset: badge flags (default gi)
+
+Output:
+  -o, --output PATH      output file; a .svg extension writes SVG, anything else PNG
+  --scale N              PNG pixel ratio, 1..8 (default 2)
+  --embed-fonts          SVG: embed the fonts as data URIs (default true)
+  --copy                 copy the PNG to the clipboard
+
+Other:
+  --list WHAT            themes, backdrops, fonts, languages or presets
+  --version              print the version and exit
+  -h, --help             print this help and exit
+
+Author:
+  ` + author + `
+  ` + projectURL + `
+`
+
 // version is the release this binary was built from. Release builds set it
 // with -ldflags "-X main.version=1.2.3"; otherwise it is taken from the
 // module version Go records for "go install", and falls back to "dev".
@@ -69,8 +147,9 @@ type options struct {
 	sample, noBG, noChrome, noShadow, noBadge, embedFonts, copy, showVersion, cursor                                              bool
 }
 
-func run(args []string, stdin io.Reader, stdout io.Writer) error {
-	var o options
+// newFlagSet registers every flag on a fresh set. run uses it, and a test
+// walks it to confirm the help text documents all of them.
+func newFlagSet(o *options) *flag.FlagSet {
 	fs := flag.NewFlagSet("codeshot", flag.ContinueOnError)
 	fs.SetOutput(os.Stderr)
 	fs.StringVar(&o.output, "output", "", "output file; a .svg extension writes SVG, anything else PNG (default <title-slug>.png)")
@@ -111,10 +190,13 @@ func run(args []string, stdin io.Reader, stdout io.Writer) error {
 	fs.BoolVar(&o.copy, "copy", false, "copy the PNG to the clipboard")
 	fs.StringVar(&o.list, "list", "", "print options and exit: themes, backdrops, fonts, languages, presets")
 	fs.BoolVar(&o.showVersion, "version", false, "print the version and exit")
-	fs.Usage = func() {
-		fmt.Fprintf(os.Stderr, "usage: codeshot [flags] [FILE]\n\nReads FILE, or stdin when FILE is omitted or \"-\".\n\n")
-		fs.PrintDefaults()
-	}
+	fs.Usage = func() { fmt.Fprintf(os.Stdout, usageText, version) }
+	return fs
+}
+
+func run(args []string, stdin io.Reader, stdout io.Writer) error {
+	var o options
+	fs := newFlagSet(&o)
 	positional, err := parseInterspersed(fs, args)
 	if err != nil {
 		return err
@@ -125,6 +207,8 @@ func run(args []string, stdin io.Reader, stdout io.Writer) error {
 	switch {
 	case o.showVersion:
 		fmt.Fprintln(stdout, "codeshot", version)
+		fmt.Fprintln(stdout, author)
+		fmt.Fprintln(stdout, projectURL)
 		return nil
 	case o.list != "":
 		return list(stdout, o.list)

@@ -62,6 +62,7 @@ Pipe anything in (`git diff | codeshot`), point it at a file, or add `--copy` to
   <a href="#presets-for-the-things-developers-actually-screenshot">Presets</a> ·
   <a href="#recipes">Recipes</a> ·
   <a href="#how-it-works">How it works</a> ·
+  <a href="#author">Author</a> ·
   <a href="#license">License</a> ·
   <a href="#credits">Credits</a>
 </p>
@@ -332,6 +333,10 @@ They are original and fictional (a made-up weather-alerts service). Any credenti
 ## License
 
 [MIT](LICENSE). Do what you like with it. The bundled fonts keep their own licenses, listed below.
+
+## Author
+
+Bryan Smith ([@securekomodo](https://github.com/securekomodo)) · Redline Cyber Security
 
 ## Credits
 

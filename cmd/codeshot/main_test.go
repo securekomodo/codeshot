@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"flag"
+	"fmt"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -107,5 +108,38 @@ func TestListAndUsageErrors(t *testing.T) {
 	}
 	if err := run([]string{"--lang", "nope-lang", "--sample"}, strings.NewReader(""), &out); err == nil {
 		t.Error("unknown language should fail")
+	}
+}
+
+// The grouped help is written by hand, so make sure it documents every flag
+// the program actually registers.
+func TestHelpDocumentsEveryFlag(t *testing.T) {
+	help := fmt.Sprintf(usageText, "1.0.0")
+	var o options
+	n := 0
+	newFlagSet(&o).VisitAll(func(f *flag.Flag) {
+		n++
+		if !strings.Contains(help, "--"+f.Name) && !strings.Contains(help, "-"+f.Name+",") {
+			t.Errorf("flag --%s is not documented in the help text", f.Name)
+		}
+	})
+	if n < 30 {
+		t.Fatalf("expected the full flag set, got %d flags", n)
+	}
+	for _, want := range []string{author, projectURL, tagline, "Usage:", "Examples:", "Author:"} {
+		if !strings.Contains(help, want) {
+			t.Errorf("help is missing %q", want)
+		}
+	}
+}
+
+func TestVersionShowsAuthor(t *testing.T) {
+	var out bytes.Buffer
+	if err := run([]string{"--version"}, strings.NewReader(""), &out); err != nil {
+		t.Fatal(err)
+	}
+	lines := strings.Split(strings.TrimSpace(out.String()), "\n")
+	if len(lines) != 3 || !strings.HasPrefix(lines[0], "codeshot ") || lines[1] != author || lines[2] != projectURL {
+		t.Errorf("--version output:\n%s", out.String())
 	}
 }
