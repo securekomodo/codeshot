@@ -11,13 +11,15 @@ mkdir -p docs/themes docs/backdrops docs/presets docs/fonts
 
 # The install demo under the Homebrew section: rendered by codeshot itself.
 demo=$(mktemp)
-cat > "$demo" <<'DEMO'
-$ brew install securekomodo/tap/codeshot
+version=$(git describe --tags --abbrev=0 2>/dev/null | sed 's/^v//')
+: "${version:=1.0.0}"
+cat > "$demo" <<DEMO
+\$ brew install securekomodo/tap/codeshot
 ==> Fetching securekomodo/tap/codeshot
 ==> Installing codeshot from securekomodo/tap
-🍺  /opt/homebrew/Cellar/codeshot/1.0.1: 6 files, 14.9MB
+🍺  /opt/homebrew/Cellar/codeshot/${version}: 6 files, 14.9MB
 
-$ codeshot main.go
+\$ codeshot main.go
 main-go.png
 DEMO
 ./codeshot --preset terminal --bg dusk --scale 2 --width 700 --title codeshot -o docs/install.png "$demo" >/dev/null
