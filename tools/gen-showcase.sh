@@ -33,12 +33,11 @@ done <<'TABLE'
 09|Project Structure|project-structure|oneDark|dusk|fira|--title nimbus
 10|Environment Variables|env-vars|oceanicNext|citrus|ibm|--title .env
 11|Terminal Session|terminal-session|kali|darkroom|dejavu|--chrome kali --cursor --padding 36 --width 792
-12|Developer Milestone|dev-milestone|shadesOfPurple|dusk|space|--padding 87 --width 690
-13|HTTP Request|http-request|palenight|slate|source|--title alert.http
-14|Git Diff|git-diff|okaidia|rose|geist|--title notify.diff
-15|Test Results|test-results|gruvboxDark|citrus|ibm|--chrome kali --padding 87 --width 690 --title "kali@kali: ~"
-16|ASCII Tree|ascii-tree|oneLight|paper|space|--title pipeline
-17|Performance Metrics|perf-metrics|dracula|darkroom|jetbrains|--title lighthouse
+12|HTTP Request|http-request|palenight|slate|source|--title alert.http
+13|Git Diff|git-diff|okaidia|rose|geist|--title notify.diff
+14|Test Results|test-results|gruvboxDark|citrus|ibm|--chrome kali --padding 87 --width 690 --title "kali@kali: ~"
+15|ASCII Tree|ascii-tree|oneLight|paper|space|--title pipeline
+16|Performance Metrics|perf-metrics|dracula|darkroom|jetbrains|--title lighthouse
 TABLE
 
 # Every frame must be the same size for a clean GIF.

@@ -14,9 +14,9 @@
 </p>
 
 <p align="center">
-  <img src="docs/showcase.gif" width="760" alt="Seventeen captioned cards in a row, one per preset: code snippet, terminal window, API response, error and log, database schema, SQL query, regex, git commit, project structure, environment variables, terminal session, developer milestone, HTTP request, git diff, test results, ASCII tree and performance metrics, each in its own theme, backdrop and font">
+  <img src="docs/showcase.gif" width="760" alt="Sixteen captioned cards in a row: code snippet, terminal window, API response, error and log, database schema, SQL query, regex, git commit, project structure, environment variables, terminal session, HTTP request, git diff, test results, ASCII tree and performance metrics, each in its own theme, backdrop and font">
   <br>
-  <sub>Every frame was rendered by <code>codeshot</code>: all seventeen presets, both window styles, thirteen themes, ten backdrops, eight fonts.</sub>
+  <sub>Every frame was rendered by <code>codeshot</code>: both window styles, thirteen themes, ten backdrops, eight fonts.</sub>
 </p>
 
 ## Install
