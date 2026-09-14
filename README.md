@@ -67,6 +67,29 @@ codeshot alerts.js        # → alerts-js.png, ready to paste anywhere
 
 Pipe anything in (`git diff | codeshot`), point it at a file, or add `--copy` to skip the file and go straight to the clipboard.
 
+## Give it to your coding agent
+
+codeshot suits an agent well. It is a single binary with no network access, it
+reads stdin and writes a file, and `--help` and `--list` describe every option,
+so an agent can work out what it can do without being taught. Piped content is
+detected, so a diff comes out as a diff and a log as a log.
+
+Install it, then paste this into your agent's instructions:
+
+```text
+codeshot turns code, terminal output, diffs and logs into PNG or SVG images.
+Run `codeshot --help` for the flags and `codeshot --list presets` for the formats.
+Save images under docs/ and link to them from markdown.
+
+  git diff | codeshot -o docs/change.png
+  codeshot --preset error-log server.log -o docs/incident.png
+  codeshot --lang python worker.py -o docs/worker.png
+```
+
+After that you can ask for the picture rather than the command: screenshot this
+diff for the pull request, turn the failing test output into an image for the
+issue, add a shot of the config to the docs.
+
 ## Good to know
 
 - **Everything happens on your machine.** Highlighting, layout and rendering run inside the binary. There is no network code at all, so nothing you paste can go anywhere.
