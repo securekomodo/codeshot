@@ -1,7 +1,7 @@
 // Command codeshot turns code into a styled PNG or SVG image, entirely
 // offline.
 //
-//	codeshot main.go                      # main-go.png, language from the extension
+//	codeshot alerts.js                    # alerts-js.png, language from the extension
 //	git diff | codeshot                   # piped content picks its own preset (diff here)
 //	cat q.sql | codeshot --lang sql -o q.png
 //	codeshot --preset git-diff --sample -o diff.svg
@@ -50,10 +50,10 @@ Usage:
   or after FILE.
 
 Examples:
-  codeshot main.go                       render a file; the language comes from its name
+  codeshot alerts.js                     render a file; the language comes from its name
   git diff | codeshot                    pipe anything in; the preset is detected
   codeshot --preset terminal --sample    try a preset with its built-in sample
-  codeshot --theme nightOwl --bg tide x.go
+  codeshot --theme nightOwl --bg tide schema.sql
   codeshot --copy notes.md               straight to the clipboard
   codeshot --list themes                 see what is available
 

@@ -19,8 +19,8 @@ cat > "$demo" <<DEMO
 ==> Installing codeshot from securekomodo/tap
 🍺  /opt/homebrew/Cellar/codeshot/${version}: 6 files, 14.9MB
 
-\$ codeshot main.go
-main-go.png
+\$ codeshot alerts.js
+alerts-js.png
 DEMO
 ./codeshot --preset terminal --bg dusk --scale 2 --width 700 --title codeshot -o docs/install.png "$demo" >/dev/null
 rm -f "$demo"

@@ -37,7 +37,7 @@ brew install securekomodo/tap/codeshot
 ```
 
 <p align="center">
-  <img src="docs/install.png" width="700" alt="A terminal showing brew install securekomodo/tap/codeshot, then codeshot main.go producing main-go.png">
+  <img src="docs/install.png" width="700" alt="A terminal showing brew install securekomodo/tap/codeshot, then codeshot alerts.js producing alerts-js.png">
 </p>
 
 ### Go
@@ -62,7 +62,7 @@ go build -o codeshot ./cmd/codeshot
 ## First run
 
 ```sh
-codeshot main.go          # → main-go.png, ready to paste anywhere
+codeshot alerts.js        # → alerts-js.png, ready to paste anywhere
 ```
 
 Pipe anything in (`git diff | codeshot`), point it at a file, or add `--copy` to skip the file and go straight to the clipboard.
@@ -234,14 +234,14 @@ codeshot --label "Before" old.go && codeshot --label "After" new.go
 codeshot --label "Release notes" --label-size 24 changelog.md
 
 # No backdrop: just the window and its shadow, on whatever you paste it into
-codeshot --transparent --copy main.go
+codeshot --transparent --copy handler.ts
 
 # Rounded corners on the backdrop, sharper ones on the window
-codeshot --radius 24 --card-radius 6 main.go
+codeshot --radius 24 --card-radius 6 schema.sql
 
 # Tired of the same orange? Make every shot a surprise
 alias shot='codeshot --bg random --copy'
-shot main.go
+shot alerts.js
 
 # Long lines wrap so the card stays at most 768px wide. Change the cap, fix the width, or wrap by column
 codeshot --max-width 1000 server.go
