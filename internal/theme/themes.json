@@ -1686,6 +1686,117 @@
      }
     }
    ]
+  },
+  {
+   "id": "windows",
+   "label": "Windows Console",
+   "mode": "dark",
+   "window": "#0c0c0c",
+   "plain": {
+    "color": "#cccccc",
+    "backgroundColor": "#0c0c0c"
+   },
+   "styles": [
+    {
+     "types": [
+      "comment",
+      "prolog",
+      "doctype",
+      "cdata"
+     ],
+     "style": {
+      "color": "#13a10e"
+     }
+    },
+    {
+     "types": [
+      "punctuation"
+     ],
+     "style": {
+      "color": "#cccccc"
+     }
+    },
+    {
+     "types": [
+      "keyword",
+      "atrule",
+      "selector"
+     ],
+     "style": {
+      "color": "#16c60c"
+     }
+    },
+    {
+     "types": [
+      "function",
+      "class-name",
+      "builtin",
+      "tag"
+     ],
+     "style": {
+      "color": "#f9f1a5"
+     }
+    },
+    {
+     "types": [
+      "string",
+      "char",
+      "attr-value",
+      "url",
+      "inserted"
+     ],
+     "style": {
+      "color": "#3a96dd"
+     }
+    },
+    {
+     "types": [
+      "variable",
+      "property",
+      "attr-name",
+      "namespace"
+     ],
+     "style": {
+      "color": "#16c60c"
+     }
+    },
+    {
+     "types": [
+      "number",
+      "boolean",
+      "constant",
+      "symbol"
+     ],
+     "style": {
+      "color": "#f2f2f2"
+     }
+    },
+    {
+     "types": [
+      "operator"
+     ],
+     "style": {
+      "color": "#767676"
+     }
+    },
+    {
+     "types": [
+      "deleted",
+      "important"
+     ],
+     "style": {
+      "color": "#e74856"
+     }
+    },
+    {
+     "types": [
+      "regex"
+     ],
+     "style": {
+      "color": "#61d6d6"
+     }
+    }
+   ]
   }
  ],
  "backdrops": [

@@ -164,6 +164,33 @@ func TestKaliChromeAndCursor(t *testing.T) {
 	}
 }
 
+func TestWindowsChrome(t *testing.T) {
+	p, _ := preset.Get("terminal")
+	s := settings.Defaults(p)
+	s.Chrome, s.Title, s.Theme = settings.ChromeWindows, "Windows PowerShell", "windows"
+	code, _ := fonts.Load("cascadia")
+	inter, _ := fonts.Inter()
+	th, _ := theme.Get(s.Theme)
+	bd, _ := theme.GetBackdrop(s.Backdrop)
+	L, _ := layout.Compute(layout.Input{Settings: s, Theme: th, Backdrop: bd, Code: code, Title: inter,
+		Lines: []highlight.Line{{{Text: "PS C:\\> dir"}}}})
+	out := string(Render(L, Options{}))
+	for _, want := range []string{
+		`fill="` + layout.WinBar + `"`,                     // title bar
+		`rx="3" fill="` + layout.WinIcon + `"`,             // icon tile
+		`>Windows PowerShell</text>`,                       // title
+		`stroke="` + layout.WinText + `" stroke-width="1"`, // control glyphs
+		`fill="#0c0c0c"`,                                   // console background
+	} {
+		if !strings.Contains(out, want) {
+			t.Errorf("missing %q", want)
+		}
+	}
+	if strings.Contains(out, `fill="#ff5f57"`) || strings.Contains(out, `>Actions</text>`) {
+		t.Error("windows chrome should have neither traffic lights nor a menu bar")
+	}
+}
+
 func TestRadii(t *testing.T) {
 	p, _ := preset.Get("code")
 	s := settings.Defaults(p)

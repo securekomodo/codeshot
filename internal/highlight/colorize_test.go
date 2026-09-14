@@ -247,3 +247,53 @@ func TestKaliPromptStyle(t *testing.T) {
 		t.Errorf("bad identity: %+v %v", id, ok)
 	}
 }
+
+func TestFirstIdentity(t *testing.T) {
+	cases := []struct{ src, want string }{
+		{"tunnel@Pentest-Dropbox2:~$ ssh -p 2222 user@127.0.0.1\nrefused", "tunnel@Pentest-Dropbox2:~"},
+		{"some output\nmira@nimbus:~/api$ make test", "mira@nimbus:~/api"},
+		{"┌──(root㉿box)-[/etc]\n└─$ id", "root@box:/etc"},
+		{"no prompt here", "kali@kali:~"},
+	}
+	for _, c := range cases {
+		id, _ := FirstIdentity(c.src)
+		if got := id.User + "@" + id.Host + ":" + id.Path; got != c.want {
+			t.Errorf("FirstIdentity(%q) = %q want %q", c.src, got, c.want)
+		}
+	}
+	if _, ok := FirstIdentity("no prompt here"); ok {
+		t.Error("a session with no prompt should report no identity")
+	}
+}
+
+func TestWindowsPrompts(t *testing.T) {
+	th, _ := theme.Get("windows")
+	pal := NewPalette(th)
+	out := Colorize("terminal", []string{
+		`PS C:\Windows\system32> Get-Process -Name ssh`,
+		"Id    CPU",
+		`C:\Users\dev> dir /b`,
+	}, Options{Theme: th})
+
+	// The console draws its prompt in the default foreground, not an accent.
+	if out[0][0].Text != `PS C:\Windows\system32>` || out[0][0].Color != "" {
+		t.Errorf("powershell prompt: %+v", out[0][0])
+	}
+	if cmd, ok := find(out[:1], "Get-Process"); !ok || cmd.Color != pal.Function.Color {
+		t.Errorf("cmdlet should take the command color: %+v", cmd)
+	}
+	if out[2][0].Text != `C:\Users\dev>` || out[2][0].Color != "" {
+		t.Errorf("cmd prompt: %+v", out[2][0])
+	}
+
+	cases := map[string]string{
+		`PS C:\> whoami`:    "Windows PowerShell",
+		`C:\Users\dev> dir`: "Command Prompt",
+		"$ ls":              "",
+	}
+	for src, want := range cases {
+		if got := WindowsShell(src); got != want {
+			t.Errorf("WindowsShell(%q) = %q want %q", src, got, want)
+		}
+	}
+}

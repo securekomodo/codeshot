@@ -10,7 +10,17 @@ func TestDefaults(t *testing.T) {
 	code, _ := preset.Get("code")
 	s := Defaults(code)
 	if s.MaxWidth != DefaultMaxWidth {
-		t.Errorf("max width default = %d", s.MaxWidth)
+		t.Errorf("code should cap at the narrow width, got %d", s.MaxWidth)
+	}
+	// Preformatted output is column-aligned, so it gets more room.
+	for _, key := range []string{"terminal", "error-log", "test-results", "perf-metrics", "git-diff"} {
+		p, _ := preset.Get(key)
+		if w := Defaults(p).MaxWidth; w != DefaultWideMaxWidth {
+			t.Errorf("%s should cap at the wide width, got %d", key, w)
+		}
+	}
+	if ms, _ := preset.Get("dev-milestone"); Defaults(ms).MaxWidth != DefaultMaxWidth {
+		t.Error("milestone text is centered prose, so it keeps the narrow cap")
 	}
 	if s.Theme != "dracula" || s.Backdrop != "ember" || s.Font != "cascadia" || s.Language != "javascript" ||
 		s.Title != "snippet.js" || s.Padding != 48 || s.FontSize != 15 || !s.ShowChrome || !s.ShowLineNumbers ||

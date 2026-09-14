@@ -78,7 +78,7 @@ Appearance:
   --watermark-opacity N  opacity of an image watermark, 0..1 (default 0.12)
 
 Window:
-  --chrome STYLE         window style: mac (default) or kali
+  --chrome STYLE         window style: mac (default), kali or windows
   --title TEXT           window title (default: the preset's)
   --label TEXT           caption drawn in a pill above the window
   --label-size N         caption font size in px, 8..64 (default 14)
@@ -90,7 +90,8 @@ Content:
   --line-numbers BOOL    line-number gutter (default: on for the code and log presets)
   --wrap COLS            soft-wrap at this many columns
   --width PX             fixed window width in px
-  --max-width PX         wrap so the window is at most this wide (default 768; 0 = off)
+  --max-width PX         wrap so the window is at most this wide
+                         (default 768 for code, 1120 for terminal output; -1 for no cap)
   --prompt STR           terminal presets: replace the prompt
   --method M             api preset badge: GET, POST, PUT, PATCH, DELETE
   --status N             api preset badge: 200, 201, 204, 400, 401, 403, 404, 422, 500
@@ -194,7 +195,7 @@ func newFlagSet(o *options) *flag.FlagSet {
 	fs.BoolVar(&o.noBG, "no-bg", false, "no backdrop: a transparent PNG with just the window and its shadow (same as --bg none)")
 	fs.BoolVar(&o.noBG, "transparent", false, "alias for --no-bg")
 	fs.BoolVar(&o.noChrome, "no-chrome", false, "hide the window title bar")
-	fs.StringVar(&o.chrome, "chrome", settings.ChromeMac, "window style: mac (traffic lights) or kali (Kali Linux terminal: menu bar, two-line prompt, Kali colors)")
+	fs.StringVar(&o.chrome, "chrome", settings.ChromeMac, "window style: mac (traffic lights), kali (menu bar, two-line prompt) or windows (console title bar)")
 	fs.BoolVar(&o.cursor, "cursor", false, "draw a block cursor after the last line")
 	fs.StringVar(&o.watermark, "watermark", "", "overlay on the window: swirl (sweeping bands, default with --chrome kali), none, or a PNG/JPEG/SVG file")
 	fs.Float64Var(&o.watermarkOpacity, "watermark-opacity", 0.12, "opacity of an image watermark, 0..1")
@@ -208,7 +209,7 @@ func newFlagSet(o *options) *flag.FlagSet {
 	fs.IntVar(&o.scale, "scale", 2, "PNG pixel ratio, 1..8")
 	fs.IntVar(&o.wrap, "wrap", 0, "soft-wrap lines at this many columns (0 = fit the longest line)")
 	fs.IntVar(&o.width, "width", 0, "fixed card width in px, wrapping to fit (0 = fit content)")
-	fs.IntVar(&o.maxWidth, "max-width", settings.DefaultMaxWidth, "wrap long lines so the card is at most this wide in px (0 = unlimited)")
+	fs.IntVar(&o.maxWidth, "max-width", 0, "wrap long lines so the card is at most this wide in px (unset = the preset's cap; -1 = no cap)")
 	fs.BoolVar(&o.embedFonts, "embed-fonts", true, "SVG output: embed the fonts as data URIs")
 	fs.BoolVar(&o.copy, "copy", false, "copy the PNG to the clipboard")
 	fs.StringVar(&o.list, "list", "", "print options and exit: themes, backdrops, fonts, languages, presets")
@@ -290,6 +291,22 @@ func run(args []string, stdin io.Reader, stdout io.Writer) error {
 	} else if s.Chrome == settings.ChromeKali {
 		s.Watermark = settings.WatermarkSwirl
 	}
+	if s.Chrome == settings.ChromeWindows {
+		// Cascadia Code is already the default font, and is the one the
+		// Windows console ships with.
+		if !seen["theme"] {
+			s.Theme = "windows"
+		}
+		if !seen["title"] && p.IsTerminal() {
+			s.Title = "Windows PowerShell"
+			if shell := highlight.WindowsShell(src); shell != "" {
+				s.Title = shell
+			}
+		}
+		if !seen["card-radius"] {
+			s.CardRadius = 8
+		}
+	}
 	if s.Chrome == settings.ChromeKali {
 		// Kali's own terminal scheme and a Linux terminal font, unless overridden.
 		if !seen["theme"] {
@@ -299,7 +316,11 @@ func run(args []string, stdin io.Reader, stdout io.Writer) error {
 			s.Font = "dejavu"
 		}
 		if !seen["title"] && p.IsTerminal() {
+			// Title the window after the session it shows, as a terminal does.
 			s.Title = "kali@kali: ~"
+			if id, ok := highlight.FirstIdentity(src); ok {
+				s.Title = id.User + "@" + id.Host + ": " + id.Path
+			}
 		}
 		if !seen["card-radius"] {
 			s.CardRadius = 8
@@ -320,7 +341,13 @@ func run(args []string, stdin io.Reader, stdout io.Writer) error {
 	if seen["flags"] {
 		s.Flags = o.flags
 	}
-	s.Scale, s.Wrap, s.Width, s.MaxWidth = o.scale, o.wrap, o.width, o.maxWidth
+	s.Scale, s.Wrap, s.Width = o.scale, o.wrap, o.width
+	if seen["max-width"] {
+		s.MaxWidth = o.maxWidth
+		if o.maxWidth < 0 {
+			s.MaxWidth = 0 // no cap at all
+		}
+	}
 
 	switch {
 	case seen["lang"]:
@@ -331,8 +358,13 @@ func run(args []string, stdin io.Reader, stdout io.Writer) error {
 	if p.Render == preset.Prism && !highlight.KnownLanguage(s.Language) {
 		return usageError{fmt.Errorf("unknown language %q (see --list languages)", s.Language)}
 	}
-	if file != "" && !seen["title"] && p.Key == preset.Default {
-		s.Title = filepath.Base(file)
+	if !seen["title"] && p.Key == preset.Default {
+		if file != "" {
+			s.Title = filepath.Base(file)
+		} else if ext := highlight.Ext(s.Language); ext != "" {
+			// No file to name it after, so name it after the language.
+			s.Title = "snippet" + ext
+		}
 	}
 	card, err := render.Build(s, src)
 	if err != nil {

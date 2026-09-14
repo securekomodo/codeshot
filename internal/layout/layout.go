@@ -42,12 +42,22 @@ const (
 	KaliButtonInset = 19 // close button center from the right edge
 	KaliIconInset   = 21 // terminal icon center from the left edge
 	KaliMenuGap     = 15
-	CodePadX        = 16
-	CodePadTop      = 4
-	CodePadBottom   = 20
-	GutterPad       = 16
-	MaxCardWidth    = 4096
-	MinCardWidth    = 120
+
+	// Windows console: icon and title on the left, three line-glyph controls
+	// on the right, each in its own cell.
+	WinTitleHeight = 32
+	WinTitleSize   = 13
+	WinIconInset   = 14
+	WinIconSize    = 16
+	WinTitleGap    = 10
+	WinButtonW     = 46
+	WinGlyph       = 10
+	CodePadX       = 16
+	CodePadTop     = 4
+	CodePadBottom  = 20
+	GutterPad      = 16
+	MaxCardWidth   = 4096
+	MinCardWidth   = 120
 )
 
 // DotColors are the macOS traffic lights.
@@ -60,6 +70,11 @@ const (
 	KaliButton     = "#40444f"          // minimize and maximize discs
 	KaliButtonEdge = "#111318"          // thin black outline around each disc, and the x on close
 	KaliText       = "#e6e6e6"
+
+	// Windows console chrome.
+	WinBar  = "#1f1f1f"
+	WinText = "#ffffff"
+	WinIcon = "#2f6fd0"
 )
 
 // KaliMenu is the menu bar of the Kali terminal.
@@ -262,13 +277,19 @@ func Compute(in Input) (*Layout, error) {
 	}
 	rows := wrapAll(in.Lines, cols)
 
-	maxW := 0.0
+	maxW, cursorW := 0.0, 0.0
 	for _, r := range rows {
 		w := 0.0
 		for _, sp := range r.line {
 			w += in.Code.Width(sp.Text, size)
 		}
 		maxW = math.Max(maxW, w)
+		if strings.TrimSpace(r.line.Text()) != "" {
+			cursorW = w + 1.5*cell // the block cursor sits in the next cell along
+		}
+	}
+	if s.Cursor {
+		maxW = math.Max(maxW, cursorW)
 	}
 	// The title is centered, so it needs the same clearance on both sides:
 	// enough for the dots on the left and the badge on the right.
@@ -277,14 +298,20 @@ func Compute(in Input) (*Layout, error) {
 	if kali {
 		inset = 3*KaliButtonGap + KaliButtonInset // the controls sit on the right, the title is centered
 	}
+	windows := s.ShowChrome && s.Chrome == settings.ChromeWindows
 	cardW := math.Ceil(2*CodePadX + gutterW + maxW)
 	if s.Width > 0 {
 		cardW = float64(s.Width)
 	} else {
 		minW := float64(MinCardWidth)
-		if s.ShowChrome {
+		if s.ShowChrome && !windows {
 			titleW := math.Min(titleFont.Width(s.DisplayTitle(), TitleSize), MaxTitleRoom)
 			minW = math.Ceil(2*inset + titleW)
+		}
+		if windows {
+			// icon, title and the three control cells
+			titleW := math.Min(titleFont.Width(s.DisplayTitle(), WinTitleSize), MaxTitleRoom)
+			minW = math.Ceil(WinIconInset + WinIconSize + WinTitleGap + titleW + WinTitleGap + 3*WinButtonW + badgeW)
 		}
 		if kali {
 			menuW := float64(KaliMenuPadX)
@@ -299,6 +326,8 @@ func Compute(in Input) (*Layout, error) {
 	barH := 0.0
 	if s.ShowChrome {
 		switch s.Chrome {
+		case settings.ChromeWindows:
+			barH = WinTitleHeight
 		case settings.ChromeKali:
 			barH = KaliTitleHeight + KaliMenuHeight
 		default:
@@ -327,7 +356,9 @@ func Compute(in Input) (*Layout, error) {
 		Font: in.Code, FontSize: size, LineHeight: lh, Plain: plain, Center: milestone,
 	}
 
-	if s.ShowChrome && s.Chrome == settings.ChromeKali {
+	if s.ShowChrome && s.Chrome == settings.ChromeWindows {
+		L.Chrome = buildWindowsChrome(L.Card, s.DisplayTitle(), titleFont, badge)
+	} else if s.ShowChrome && s.Chrome == settings.ChromeKali {
 		L.Chrome = buildKaliChrome(L.Card, s.DisplayTitle(), titleFont, badge)
 	} else if s.ShowChrome {
 		L.Chrome = buildChrome(L.Card, barH, s.DisplayTitle(), titleFont, badge, inset, light)
@@ -387,6 +418,41 @@ func Compute(in Input) (*Layout, error) {
 		L.Cursor = &Rect{x + cell/2, last.Y - asc, cell, asc + desc}
 	}
 	return L, nil
+}
+
+// buildWindowsChrome lays out a Windows console title bar: the icon and
+// title run along the left, the three controls sit in equal cells on the right.
+func buildWindowsChrome(card Rect, title string, font *fonts.Face, badge *Badge) *Chrome {
+	c := &Chrome{Style: settings.ChromeWindows, Bar: Rect{card.X, card.Y, card.W, WinTitleHeight}}
+	cy := card.Y + WinTitleHeight/2
+	c.Icon = &Rect{card.X + WinIconInset, cy - WinIconSize/2, WinIconSize, WinIconSize}
+	for i, kind := range []string{"minimize", "maximize", "close"} {
+		c.Buttons = append(c.Buttons, Button{
+			CX:   card.X + card.W - float64(3-i)*WinButtonW + WinButtonW/2,
+			CY:   cy,
+			Kind: kind,
+		})
+	}
+	asc, desc := font.Metrics(WinTitleSize)
+	x := card.X + WinIconInset + WinIconSize + WinTitleGap
+	c.Title = Text{
+		X: x, Y: cy + (asc-desc)/2, Anchor: "start", Size: WinTitleSize, Font: font,
+		Text:  truncate(title, font, WinTitleSize, card.X+card.W-3*WinButtonW-x-WinTitleGap),
+		Color: theme.Color{Hex: WinText, Alpha: 1},
+	}
+	if badge != nil {
+		badge.Box.X = card.X + card.W - 3*WinButtonW - WinTitleGap - badge.Box.W
+		badge.Box.Y = cy - badge.Box.H/2
+		bx := badge.Box.X + 1 + BadgePadX
+		basc, bdesc := badge.Texts[0].Font.Metrics(BadgeSize)
+		for i := range badge.Texts {
+			t := &badge.Texts[i]
+			t.X, t.Y = bx, cy+(basc-bdesc)/2
+			bx += t.Font.Width(t.Text, BadgeSize) + BadgeGap
+		}
+		c.Badge = badge
+	}
+	return c
 }
 
 // buildKaliChrome lays out the Kali terminal's title bar (controls on the

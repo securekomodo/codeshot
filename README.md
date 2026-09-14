@@ -160,9 +160,13 @@ issue, add a shot of the config to the docs.
 <table align="center"><tr>
 <td align="center" valign="top"><a href="docs/window-mac.png"><img src="docs/window-mac.png" width="380" alt="macOS window style"></a><br><sub><code>--chrome mac</code> (default)</sub></td>
 <td align="center" valign="top"><a href="docs/window-kali.png"><img src="docs/window-kali.png" width="380" alt="Kali Linux terminal style"></a><br><sub><code>--chrome kali --cursor</code></sub></td>
+</tr><tr>
+<td align="center" valign="top" colspan="2"><a href="docs/window-windows.png"><img src="docs/window-windows.png" width="380" alt="Windows console style"></a><br><sub><code>--chrome windows --cursor</code></sub></td>
 </tr></table>
 
 The Kali style is the Kali Linux terminal as it ships: the title bar with the terminal icon and the controls on the right, the menu bar, terminal line spacing, Kali's own color scheme (<code>--theme kali</code>) in DejaVu Sans Mono (<code>--font dejavu</code>), and the two-line zsh prompt with the <code>㉿</code>. Plain <code>$</code> prompts and <code>user@host:~$</code> prompts are rewritten into it, a blank line separates commands, and sessions captured on Kali pass through untouched. <code>--prompt root@kali:/root#</code> changes who the prompt shows. The faint sweeping bands in the body are the built-in <code>swirl</code> watermark; <code>--watermark none</code> removes them and <code>--watermark path/to/image.png</code> overlays your own wallpaper or logo instead. Every other theme, backdrop and font still applies on top.
+
+The Windows style is the console title bar: a terminal icon and the title along the left, and minimize, maximize and close as thin line glyphs on the right. It brings the console palette (<code>--theme windows</code>) in Cascadia Code, the font the console ships with. PowerShell and cmd prompts are recognized as written, so <code>PS C:\Windows\system32></code> and <code>C:\Users\dev></code> stay in the default foreground with the command after them highlighted. It suits `.ps1`, `.bat` and `.cmd` files as well as pasted sessions: pair it with <code>--lang powershell</code> or <code>--lang batch</code>.
 
 ## Or no backdrop at all
 
@@ -270,7 +274,7 @@ shot alerts.js
 codeshot --max-width 1000 server.go
 codeshot --width 900 server.go
 codeshot --wrap 80 server.go
-codeshot --max-width 0 server.go        # no cap: the card fits the longest line
+codeshot --max-width -1 server.go       # no cap: the card fits the longest line
 ```
 
 ## How it works
@@ -311,7 +315,8 @@ codeshot [flags] [FILE]        FILE omitted or "-" reads stdin; flags may come b
 --lang ID             language for the code presets (default: the preset's, or guessed
                       from the file name; --list languages)
 --theme ID            dracula (default), nightOwl, oneDark, palenight, oceanicNext, shadesOfPurple,
-                      vsDark, okaidia, gruvboxDark, github, oneLight, nightOwlLight, kali, or random
+                      vsDark, okaidia, gruvboxDark, github, oneLight, nightOwlLight, kali,
+                      windows, or random
 --bg ID               ember (default), darkroom, tide, dusk, citrus, slate, mint, rose, ink, paper, none,
                       or random (never none; the choice is printed to stderr)
 --font ID|PATH        cascadia (default), jetbrains, fira, geist, ibm, source, space, dejavu, or a .ttf/.otf file
@@ -324,7 +329,8 @@ codeshot [flags] [FILE]        FILE omitted or "-" reads stdin; flags may come b
 --radius PX           corner radius of the backdrop; the PNG's corners become transparent (default 0)
 --card-radius PX      corner radius of the window (default 12)
 --no-chrome           hide the title bar
---chrome STYLE        window style: mac (default) or kali (Kali terminal: menu bar, two-line prompt, Kali colors)
+--chrome STYLE        window style: mac (default), kali (menu bar, two-line prompt) or
+                      windows (console title bar, PowerShell and cmd prompts)
 --cursor              draw a block cursor after the last line
 --watermark X         overlay on the window: swirl (sweeping bands, on by default with --chrome kali),
                       none, or a PNG/JPEG/SVG file placed faintly in the bottom-right corner
@@ -337,7 +343,8 @@ codeshot [flags] [FILE]        FILE omitted or "-" reads stdin; flags may come b
 --no-badge            api preset: hide the badge
 --flags STR           regex preset: badge flags (default gi)
 --scale N             PNG pixel ratio, 1..8 (default 2)
---max-width PX        wrap long lines so the card is at most this wide (default 768; 0 = unlimited)
+--max-width PX        wrap long lines so the card is at most this wide (default 768 for code,
+                      1120 for terminal output and other preformatted text; -1 for no cap)
 --width PX            fixed card width, wrapping to fit
 --wrap COLS           soft-wrap at this many columns
 --embed-fonts BOOL    SVG: inline the fonts as data URIs (default true)
@@ -357,7 +364,7 @@ No. There is no network code in the binary at all. Highlighting, layout and rast
 It looks: <code>diff --git</code> headers, <code>commit</code> lines, <code>$</code> prompts, valid JSON, tree branches, <code>KEY=VALUE</code> lines, an HTTP request line, pass/fail marks, or timestamps and log levels. Anything else is treated as code. <code>--preset</code> or <code>--lang</code> always wins.
 
 **Which languages are supported?**
-JavaScript, TypeScript, JSX, TSX, Python, Go, Rust, C, C++, Swift, Kotlin, JSON, YAML, SQL, GraphQL, CSS, HTML and Markdown have theme-tuned highlighting. Any other name chroma knows (<code>bash</code>, <code>toml</code>, <code>dockerfile</code>, <code>diff</code>, dozens more) works too.
+JavaScript, TypeScript, JSX, TSX, Python, Go, Rust, C, C++, Swift, Kotlin, JSON, YAML, SQL, GraphQL, CSS, HTML, Markdown, PowerShell and Batch have theme-tuned highlighting. Any other name chroma knows (<code>bash</code>, <code>toml</code>, <code>dockerfile</code>, <code>diff</code>, dozens more) works too.
 
 **Can I use my own font?**
 Yes: <code>--font ./MyMono.ttf</code>. A family with bold and italic faces in the same file also gets real bold and italic; the bundled fonts are regular weight only.
@@ -369,7 +376,7 @@ Symbols and emoji fall back to DejaVu Sans Mono and monochrome Noto Emoji (and K
 About 16 MB: the highlighter's lexers, the resvg WebAssembly rasterizer, and the fonts. That is the price of needing nothing else installed.
 
 **A log line was 400 characters. Why isn't my image 400 characters wide?**
-Long lines soft-wrap so the card is at most 768px wide, the width of a comfortable 80-column terminal. Raise the cap with <code>--max-width</code>, fix the width with <code>--width</code>, or pass <code>--max-width 0</code> to let the card grow to the longest line.
+Long lines soft-wrap. Code stops at 768px, about 80 columns. Terminal sessions, logs and other preformatted output get 1120px, about 120 columns, because wrapping would break their column alignment. Raise the cap with <code>--max-width</code>, fix the width with <code>--width</code>, or pass <code>--max-width -1</code> to let the card grow to the longest line.
 
 **How long does a render take?**
 Roughly a second for a typical snippet at 2x. Bigger scales cost more pixels.

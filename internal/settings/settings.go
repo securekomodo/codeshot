@@ -60,18 +60,25 @@ const (
 
 // Window styles.
 const (
-	ChromeMac  = "mac"  // macOS title bar with traffic lights
-	ChromeKali = "kali" // Kali Linux terminal: title bar, menu bar, controls on the right
+	ChromeMac     = "mac"     // macOS title bar with traffic lights
+	ChromeKali    = "kali"    // Kali Linux terminal: title bar, menu bar, controls on the right
+	ChromeWindows = "windows" // Windows console: icon and title left, line-glyph controls right
 )
 
 // Chromes lists the window styles.
-var Chromes = []string{ChromeMac, ChromeKali}
+var Chromes = []string{ChromeMac, ChromeKali, ChromeWindows}
 
 // DefaultLabelSize is the caption's font size in px.
 const DefaultLabelSize = 14
 
 // DefaultCardRadius is the window's corner radius in px.
 const DefaultCardRadius = 12
+
+// DefaultWideMaxWidth is the cap for preformatted output. Terminal
+// sessions, logs and tables are aligned in columns that wrapping would
+// destroy, and they are usually written for a 120-column terminal, so they
+// get more room than code before a line is broken.
+const DefaultWideMaxWidth = 1120
 
 // DefaultMaxWidth is the widest a card gets unless --width, --wrap or
 // --max-width says otherwise: long lines soft-wrap instead of producing a
@@ -84,6 +91,14 @@ var (
 	Statuses = []string{"200", "201", "204", "400", "401", "403", "404", "422", "500"}
 	Prompts  = []string{"$", "❯", "#", "~", ""}
 )
+
+// maxWidthFor picks how wide a preset's card may grow before lines wrap.
+func maxWidthFor(p preset.Preset) int {
+	if p.Render == preset.Prism || p.Render == preset.Milestone {
+		return DefaultMaxWidth
+	}
+	return DefaultWideMaxWidth
+}
 
 // Defaults returns the studio's initial state for a preset.
 func Defaults(p preset.Preset) Settings {
@@ -107,7 +122,7 @@ func Defaults(p preset.Preset) Settings {
 		Status:           "200",
 		ShowBadge:        true,
 		Scale:            2,
-		MaxWidth:         DefaultMaxWidth,
+		MaxWidth:         maxWidthFor(p),
 		CardRadius:       DefaultCardRadius,
 		LabelSize:        DefaultLabelSize,
 	}

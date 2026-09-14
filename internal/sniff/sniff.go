@@ -11,13 +11,16 @@ import (
 )
 
 var (
-	diffHeader  = regexp.MustCompile(`^(diff --git |@@ -\d+(,\d+)? \+\d+)`)
-	diffFile    = regexp.MustCompile(`^(\+\+\+ |--- )`)
-	gitCommit   = regexp.MustCompile(`^commit [0-9a-f]{7,40}\b`)
-	promptLine  = regexp.MustCompile(`^[$❯] \S`)
+	diffHeader = regexp.MustCompile(`^(diff --git |@@ -\d+(,\d+)? \+\d+)`)
+	diffFile   = regexp.MustCompile(`^(\+\+\+ |--- )`)
+	gitCommit  = regexp.MustCompile(`^commit [0-9a-f]{7,40}\b`)
+	promptLine = regexp.MustCompile(`^[$❯] \S`)
+	// user@host:~$ cmd, [user@host dir]$ cmd, and the two-line Kali prompt.
+	hostPrompt  = regexp.MustCompile(`^[\w.-]+@[\w.-]+[^\s]*[$#](\s|$)|^\[[\w.-]+@[\w.-]+[^\]\n]*\][$#](\s|$)|^\s*┌──\(|^\s*└─[$#]`)
 	httpRequest = regexp.MustCompile(`^(GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS) \S+ HTTP/\d`)
 	envLine     = regexp.MustCompile(`^(export )?[A-Za-z_][A-Za-z0-9_]*=`)
 	treeLine    = regexp.MustCompile(`(├──|└──|\|--|` + "`--" + `)`)
+	winPrompt   = regexp.MustCompile(`^(PS )?[A-Za-z]:\\[^>\n]*>`)
 	logLine     = regexp.MustCompile(`^\[?\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}|^\[?\d{2}:\d{2}:\d{2}|\b(TRACE|DEBUG|INFO|NOTICE|WARN|WARNING|ERROR|FATAL)\b`)
 	testLine    = regexp.MustCompile(`(?i)^\s*(✓|✔|✗|✘|○|PASS\b|FAIL\b|ok\b|not ok\b)|\b(Tests?|Test Suites):\s+\d+`)
 )
@@ -46,7 +49,7 @@ func Preset(text string) string {
 		return "git-commit"
 	case httpRequest.MatchString(first):
 		return "http-request"
-	case count(promptLine) > 0:
+	case count(promptLine) > 0 || count(hostPrompt) > 0 || count(winPrompt) > 0:
 		return "terminal"
 	case looksJSON(text):
 		return "api"

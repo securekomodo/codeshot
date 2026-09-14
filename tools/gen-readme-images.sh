@@ -48,6 +48,18 @@ rm -f "$social"
 # The two window styles, same session.
 ./codeshot --preset terminal-session --sample --scale 1 --width 560 --title nimbus -o docs/window-mac.png >/dev/null
 ./codeshot --preset terminal-session --sample --scale 1 --width 560 --chrome kali --cursor -o docs/window-kali.png >/dev/null
+win=$(mktemp)
+cat > "$win" <<'WIN'
+PS C:\Users\dev> Get-Service -Name Spooler | Select-Object Status,Name
+Status   Name
+------   ----
+Running  Spooler
+PS C:\Users\dev> .\deploy.exe --env staging
+Deployed 12 files in 1.4s
+PS C:\Users\dev>
+WIN
+./codeshot --scale 1 --width 560 --chrome windows --cursor -o docs/window-windows.png "$win" >/dev/null
+rm -f "$win"
 
 # One thumbnail per theme (same snippet, neutral backdrop so the theme shows).
 for t in $(./codeshot --list themes | awk '{print $1}' | grep -v '^random$'); do

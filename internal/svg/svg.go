@@ -230,8 +230,12 @@ func roundedRectPath(x, y, w, h, r float64) string {
 }
 
 func (w *writer) chrome(c *layout.Chrome) {
-	if c.Style == settings.ChromeKali {
+	switch c.Style {
+	case settings.ChromeKali:
 		w.kaliChrome(c)
+		return
+	case settings.ChromeWindows:
+		w.windowsChrome(c)
 		return
 	}
 	for _, d := range c.Dots {
@@ -271,6 +275,43 @@ func (w *writer) swirl(L *layout.Layout) {
 		// The band itself with only a hairline to take the edge off.
 		w.printf(`<path d="%s" fill="#000000" fill-opacity="0.11" stroke="#000000" stroke-opacity="0.03" stroke-width="%s" stroke-linejoin="round"/>`,
 			d, num(c.H*0.005))
+	}
+}
+
+// windowsChrome draws a Windows console title bar: a terminal icon and the
+// title along the left, and minimize, maximize and close as thin line
+// glyphs in equal cells on the right.
+func (w *writer) windowsChrome(c *layout.Chrome) {
+	w.printf(`<rect x="%s" y="%s" width="%s" height="%s" fill="%s"/>`,
+		num(c.Bar.X), num(c.Bar.Y), num(c.Bar.W), num(c.Bar.H), layout.WinBar)
+	if ic := c.Icon; ic != nil {
+		w.printf(`<rect x="%s" y="%s" width="%s" height="%s" rx="3" fill="%s"/>`,
+			num(ic.X), num(ic.Y), num(ic.W), num(ic.H), layout.WinIcon)
+		// A chevron over an underscore: the usual shorthand for a shell.
+		w.printf(`<path d="M%s,%s l3,3 l-3,3 M%s,%s h4.5" fill="none" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>`,
+			num(ic.X+4), num(ic.Y+4.5), num(ic.X+8), num(ic.Y+11.5))
+	}
+	w.text(c.Title)
+	for _, b := range c.Buttons {
+		g := float64(layout.WinGlyph) / 2
+		switch b.Kind {
+		case "minimize":
+			w.printf(`<path d="M%s,%s h%s" stroke="%s" stroke-width="1"/>`, num(b.CX-g), num(b.CY), num(2*g), layout.WinText)
+		case "maximize":
+			w.printf(`<rect x="%s" y="%s" width="%s" height="%s" fill="none" stroke="%s" stroke-width="1"/>`,
+				num(b.CX-g+0.5), num(b.CY-g+0.5), num(2*g-1), num(2*g-1), layout.WinText)
+		case "close":
+			w.printf(`<path d="M%s,%s l%s,%s M%s,%s l%s,%s" stroke="%s" stroke-width="1"/>`,
+				num(b.CX-g), num(b.CY-g), num(2*g), num(2*g), num(b.CX+g), num(b.CY-g), num(-2*g), num(2*g), layout.WinText)
+		}
+	}
+	if b := c.Badge; b != nil {
+		w.printf(`<rect x="%s" y="%s" width="%s" height="%s" rx="%s" fill="none" stroke="%s"%s stroke-width="1"/>`,
+			num(b.Box.X+0.5), num(b.Box.Y+0.5), num(b.Box.W-1), num(b.Box.H-1), num(layout.BadgeRadius),
+			b.Border.Hex, opacityAttr("stroke-opacity", b.Border.Alpha))
+		for _, t := range b.Texts {
+			w.text(t)
+		}
 	}
 }
 

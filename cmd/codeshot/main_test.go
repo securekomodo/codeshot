@@ -56,8 +56,8 @@ func TestSniffedPresetFromStdin(t *testing.T) {
 		t.Fatal(err)
 	}
 	svg, _ = os.ReadFile(out)
-	if !strings.Contains(string(svg), "snippet.js") {
-		t.Error("--lang keeps the code preset")
+	if !strings.Contains(string(svg), "snippet.go") {
+		t.Error("--lang keeps the code preset, titled after the language")
 	}
 	// A file gets its name as the title.
 	src := filepath.Join(dir, "main.go")
@@ -91,6 +91,48 @@ func TestPickRandom(t *testing.T) {
 	}
 	if _, err := os.Stat(out); err != nil {
 		t.Fatal(err)
+	}
+}
+
+// A snippet that arrives without a file name is named after its language,
+// rather than always claiming to be JavaScript.
+func TestUntitledSnippetTakesTheLanguageExtension(t *testing.T) {
+	dir := t.TempDir()
+	out := filepath.Join(dir, "a.svg")
+	var stdout bytes.Buffer
+	cases := map[string]string{
+		"powershell": "snippet.ps1",
+		"python":     "snippet.py",
+		"bash":       "snippet.bash", // not in the built-in list
+		"":           "snippet.js",   // nothing chosen, so the preset default stands
+	}
+	for lang, want := range cases {
+		args := []string{"-o", out}
+		if lang != "" {
+			args = append(args, "--lang", lang)
+		}
+		if err := run(args, strings.NewReader("x = 1\n"), &stdout); err != nil {
+			t.Fatalf("%s: %v", lang, err)
+		}
+		svg, _ := os.ReadFile(out)
+		if !strings.Contains(string(svg), ">"+want+"<") {
+			t.Errorf("--lang %q should title the window %q", lang, want)
+		}
+	}
+	// A file name and an explicit title both outrank the language.
+	src := filepath.Join(dir, "audit.ps1")
+	os.WriteFile(src, []byte("Write-Host 1\n"), 0o644)
+	if err := run([]string{src, "-o", out}, strings.NewReader(""), &stdout); err != nil {
+		t.Fatal(err)
+	}
+	if svg, _ := os.ReadFile(out); !strings.Contains(string(svg), ">audit.ps1<") {
+		t.Error("a file should be titled after its name")
+	}
+	if err := run([]string{"--lang", "python", "--title", "chosen", "-o", out}, strings.NewReader("x=1\n"), &stdout); err != nil {
+		t.Fatal(err)
+	}
+	if svg, _ := os.ReadFile(out); !strings.Contains(string(svg), ">chosen<") {
+		t.Error("--title should win")
 	}
 }
 

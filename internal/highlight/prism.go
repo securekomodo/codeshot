@@ -9,15 +9,34 @@ import (
 	"github.com/securekomodo/codeshot/internal/theme"
 )
 
-// Language is one entry of the built-in language list.
-type Language struct{ ID, Label string }
+// Language is one entry of the built-in language list. Ext is the file
+// extension the language is usually written with, used to name a snippet
+// that arrived without a file name of its own.
+type Language struct{ ID, Label, Ext string }
 
 // Languages lists the built-in languages, keyed by Prism id.
 var Languages = []Language{
-	{"javascript", "JavaScript"}, {"typescript", "TypeScript"}, {"jsx", "JSX"}, {"tsx", "TSX"},
-	{"python", "Python"}, {"go", "Go"}, {"rust", "Rust"}, {"c", "C"}, {"cpp", "C++"},
-	{"swift", "Swift"}, {"kotlin", "Kotlin"}, {"json", "JSON"}, {"yaml", "YAML"}, {"sql", "SQL"},
-	{"graphql", "GraphQL"}, {"css", "CSS"}, {"markup", "HTML"}, {"markdown", "Markdown"},
+	{"javascript", "JavaScript", ".js"}, {"typescript", "TypeScript", ".ts"},
+	{"jsx", "JSX", ".jsx"}, {"tsx", "TSX", ".tsx"}, {"python", "Python", ".py"},
+	{"go", "Go", ".go"}, {"rust", "Rust", ".rs"}, {"c", "C", ".c"}, {"cpp", "C++", ".cpp"},
+	{"swift", "Swift", ".swift"}, {"kotlin", "Kotlin", ".kt"}, {"json", "JSON", ".json"},
+	{"yaml", "YAML", ".yaml"}, {"sql", "SQL", ".sql"}, {"graphql", "GraphQL", ".graphql"},
+	{"css", "CSS", ".css"}, {"markup", "HTML", ".html"}, {"markdown", "Markdown", ".md"},
+	{"powershell", "PowerShell", ".ps1"}, {"batch", "Batch", ".bat"},
+}
+
+// Ext returns the file extension a language is usually written with. For a
+// lexer that is not in the list, the name itself is the best guess.
+func Ext(lang string) string {
+	for _, l := range Languages {
+		if l.ID == lang {
+			return l.Ext
+		}
+	}
+	if lang == "" {
+		return ""
+	}
+	return "." + lang
 }
 
 // LanguageIDs returns the language ids in dropdown order.
@@ -67,7 +86,7 @@ var chromaToSite = map[string]string{
 	"go": "go", "rust": "rust", "c": "c", "c++": "cpp", "swift": "swift", "kotlin": "kotlin",
 	"json": "json", "yaml": "yaml", "sql": "sql", "mysql": "sql", "postgresql sql dialect": "sql",
 	"transact-sql": "sql", "graphql": "graphql", "css": "css",
-	"html": "markup", "markdown": "markdown",
+	"html": "markup", "markdown": "markdown", "powershell": "powershell", "batchfile": "batch",
 }
 
 // DetectLanguage guesses a language id from a filename ("" if unknown).

@@ -20,7 +20,25 @@ var (
 		regexp.MustCompile(`^(\[[\w.-]+@[\w.-]+)([^\]\n]*\][$#])( |$)`),
 	}
 	userHost = regexp.MustCompile(`^(\[?[\w.-]+@[\w.-]+)(.*)$`)
+	// PowerShell "PS C:\path>" and cmd "C:\path>" prompts. The console
+	// draws these in the default foreground, so they stay plain.
+	windowsPrompt = regexp.MustCompile(`^(PS )?[A-Za-z]:\\[^>\n]*>`)
 )
+
+// WindowsShell names the console a session was captured in, for the window
+// title. It returns "" when nothing looks like a Windows prompt.
+func WindowsShell(src string) string {
+	for _, l := range strings.Split(src, "\n") {
+		if !windowsPrompt.MatchString(l) {
+			continue
+		}
+		if strings.HasPrefix(l, "PS ") {
+			return "Windows PowerShell"
+		}
+		return "Command Prompt"
+	}
+	return ""
+}
 
 func (c colorizer) terminal(l string) Line {
 	first, size := utf8.DecodeRuneInString(l)
@@ -32,6 +50,10 @@ func (c colorizer) terminal(l string) Line {
 			}
 			return append(c.promptSpans(shown), c.command(l[size:])...)
 		}
+	}
+	if windowsPrompt.MatchString(l) {
+		i := strings.IndexByte(l, '>')
+		return append(Line{plain(l[:i+1])}, c.command(l[i+1:])...)
 	}
 	for _, re := range userHostPrompts {
 		if m := re.FindStringSubmatchIndex(l); m != nil {

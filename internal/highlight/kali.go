@@ -28,6 +28,22 @@ var DefaultIdentity = Identity{"kali", "kali", "~", "$"}
 
 var identityRe = regexp.MustCompile(`^\[?([\w.-]+)[@㉿]([\w.-]+)\]?(?::([^\s$#\]]*)|\s+([^\s\]$#]*)\]?)?\s*([$#])?\s*$`)
 
+// FirstIdentity returns who the first prompt in a session belongs to, so a
+// window can be titled after the host the commands were run on.
+func FirstIdentity(src string) (Identity, bool) {
+	for _, l := range strings.Split(src, "\n") {
+		if m := kaliTopLine.FindStringSubmatch(l); m != nil {
+			return ParseIdentity(m[2] + ":" + m[4])
+		}
+		for _, re := range userHostPrompts {
+			if m := re.FindStringSubmatchIndex(l); m != nil {
+				return ParseIdentity(l[:m[5]])
+			}
+		}
+	}
+	return DefaultIdentity, false
+}
+
 // ParseIdentity reads "kali@kali:~$", "root@box:/etc#", "[user@host dir]$"
 // or plain "user@host" into an Identity, filling gaps from the default.
 func ParseIdentity(s string) (Identity, bool) {

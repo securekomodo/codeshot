@@ -139,11 +139,19 @@ func TestComputeBadgeWidthMilestone(t *testing.T) {
 		t.Errorf("wrap rows=%d gutter=%d", len(L.Rows), len(L.Gutter))
 	}
 
-	// A very long line wraps at the default max width instead of widening the card.
-	in, s = fixture(t, "terminal", "$ curl https://example.com/"+strings.Repeat("abcdefghij", 30))
+	// A very long line wraps at the preset's cap instead of widening the card.
+	// Terminal output is column-aligned, so it gets more room than code before
+	// anything is broken.
+	long := "https://example.com/" + strings.Repeat("abcdefghij", 30)
+	in, s = fixture(t, "terminal", "$ curl "+long)
+	L, _ = Compute(in)
+	if L.Card.W > settings.DefaultWideMaxWidth || L.Card.W <= settings.DefaultMaxWidth || len(L.Rows) < 3 {
+		t.Errorf("terminal cap: card %v rows %d", L.Card.W, len(L.Rows))
+	}
+	in, _ = fixture(t, "code", "const url = \""+long+"\"")
 	L, _ = Compute(in)
 	if L.Card.W > settings.DefaultMaxWidth || len(L.Rows) < 3 {
-		t.Errorf("default max width: card %v rows %d", L.Card.W, len(L.Rows))
+		t.Errorf("code cap: card %v rows %d", L.Card.W, len(L.Rows))
 	}
 	s.MaxWidth = 0
 	in.Settings = s
@@ -156,6 +164,25 @@ func TestComputeBadgeWidthMilestone(t *testing.T) {
 	L, _ = Compute(in)
 	if L.Card.W != 500 || len(L.Rows) < 5 {
 		t.Errorf("fixed width wins: card %v rows %d", L.Card.W, len(L.Rows))
+	}
+
+	// Windows console: icon and title left, three controls right.
+	in, s = fixture(t, "terminal", "PS C:\\Users\\dev> dir", "Volume in drive C")
+	s.Chrome, s.Title = settings.ChromeWindows, "Windows PowerShell"
+	in.Settings = s
+	L, _ = Compute(in)
+	wc := L.Chrome
+	if wc == nil || wc.Style != settings.ChromeWindows || wc.Bar.H != WinTitleHeight || len(wc.Buttons) != 3 || wc.Icon == nil {
+		t.Fatalf("windows chrome: %+v", wc)
+	}
+	if wc.Title.Anchor != "start" || wc.Title.X <= wc.Icon.X+wc.Icon.W {
+		t.Errorf("windows title should sit left, after the icon: %+v", wc.Title)
+	}
+	if wc.Buttons[2].Kind != "close" || wc.Buttons[2].CX <= wc.Buttons[0].CX {
+		t.Errorf("windows controls out of order: %+v", wc.Buttons)
+	}
+	if right := wc.Buttons[2].CX + WinButtonW/2; right > L.Card.X+L.Card.W+0.01 {
+		t.Errorf("controls overrun the window: %v vs %v", right, L.Card.X+L.Card.W)
 	}
 
 	in, s = fixture(t, "code", "x")
