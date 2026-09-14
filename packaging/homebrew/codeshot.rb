@@ -13,8 +13,8 @@
 class Codeshot < Formula
   desc "Turn code into a beautiful image, from your terminal"
   homepage "https://github.com/securekomodo/codeshot"
-  url "https://github.com/securekomodo/codeshot/archive/refs/tags/v1.1.0.tar.gz"
-  sha256 "f5c0146f144222680bcb9aedb274b49b133c8cda5e63a81f8e66f8c1e1dbc8f4"
+  url "https://github.com/securekomodo/codeshot/archive/refs/tags/v1.2.0.tar.gz"
+  sha256 "45f5a575da98284eeb184145d899ead0022e34cea7e1344e4c39e1b9c29ecd5f"
   # MIT for the program; the bundled fonts keep their own licenses.
   license all_of: ["MIT", "OFL-1.1", "Bitstream-Vera"]
   head "https://github.com/securekomodo/codeshot.git", branch: "main"
