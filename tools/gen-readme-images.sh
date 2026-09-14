@@ -25,6 +25,22 @@ DEMO
 ./codeshot --preset terminal --bg dusk --scale 2 --width 700 --title codeshot -o docs/install.png "$demo" >/dev/null
 rm -f "$demo"
 
+# GitHub's social preview, at the 1280x640 it recommends. Upload it under
+# Settings > General > Social preview; there is no API for it.
+social=$(mktemp)
+cat > "$social" <<'SOCIAL'
+// Turn code into a beautiful image, from your terminal.
+export async function shot(file, opts = {}) {
+  const theme = opts.theme ?? "dracula";
+  const card = await render(file, { theme });
+  return card.png({ scale: 2 });
+}
+SOCIAL
+./codeshot --lang javascript --label codeshot --label-size 24 --bg ember \
+  --title shot.js --font-size 15 --padding 32 --width 576 --scale 2 \
+  -o docs/social-preview.png "$social" >/dev/null
+rm -f "$social"
+
 # No backdrop at all (transparent PNG), and rounded backdrop corners.
 ./codeshot --preset code --sample --transparent --title shoot.js -o docs/transparent.png >/dev/null
 ./codeshot --preset code --sample --radius 28 --bg dusk --title shoot.js -o docs/rounded.png >/dev/null
