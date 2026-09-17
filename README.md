@@ -95,7 +95,7 @@ issue, add a shot of the config to the docs.
 - **Everything happens on your machine.** Highlighting, layout and rendering run inside the binary. There is no network code at all, so nothing you paste can go anywhere.
 - **No account, no API key, no telemetry.** Nothing to sign up for and nothing phoning home.
 - **One file, nothing else to install.** No browser, no ImageMagick, no system libraries. Works offline on macOS, Linux and Windows.
-- **Output is just a file.** A PNG or SVG where you asked for it, or your clipboard. Nothing else is written anywhere.
+- **Output is just a file.** A PNG or SVG where you asked for it, or your clipboard. It is written beside the destination and renamed into place, so an interrupted write can never leave you with a half-written image where a good one used to be.
 - **Your terminal sessions and logs are safe to render.** Sample credentials in the built-in demos are placeholders, and your own content never leaves the process.
 - **Honest numbers.** About 16 MB on disk (fonts and the rasterizer make up most of it) and about a second per image.
 

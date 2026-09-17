@@ -16,11 +16,14 @@ import (
 	"io"
 	"math/rand/v2"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"runtime/debug"
 	"slices"
 	"strconv"
 	"strings"
+	"sync"
+	"syscall"
 
 	"github.com/securekomodo/codeshot/internal/clipboard"
 	"github.com/securekomodo/codeshot/internal/fonts"
@@ -149,6 +152,7 @@ func init() {
 }
 
 func main() {
+	cleanupOnInterrupt()
 	if err := run(os.Args[1:], os.Stdin, os.Stdout); err != nil {
 		if errors.Is(err, flag.ErrHelp) {
 			return
@@ -377,7 +381,7 @@ func run(args []string, stdin io.Reader, stdout io.Writer) error {
 		out = settings.Slug(s.Title, p.Key) + ".png"
 	}
 	if wantSVG {
-		if err := os.WriteFile(out, card.SVG(o.embedFonts), 0o644); err != nil {
+		if err := writeFile(out, card.SVG(o.embedFonts)); err != nil {
 			return err
 		}
 		fmt.Fprintln(stdout, out)
@@ -399,7 +403,7 @@ func run(args []string, stdin io.Reader, stdout io.Writer) error {
 		tmp.Close()
 		defer os.Remove(out)
 	}
-	if err := os.WriteFile(out, data, 0o644); err != nil {
+	if err := writeFile(out, data); err != nil {
 		return err
 	}
 	if o.output != "" || !o.copy {
@@ -428,6 +432,80 @@ func pickRandom(ids []string, exclude ...string) string {
 		}
 	}
 	return pool[rand.IntN(len(pool))]
+}
+
+// inFlight is the temporary file the current write is using, if any, so an
+// interrupt can remove it before the process dies.
+var inFlight struct {
+	sync.Mutex
+	path string
+}
+
+// cleanupOnInterrupt removes the in-flight temporary file when the process is
+// interrupted or terminated, so a cancelled render leaves nothing behind.
+func cleanupOnInterrupt() {
+	ch := make(chan os.Signal, 1)
+	signal.Notify(ch, os.Interrupt, syscall.SIGTERM)
+	go func() {
+		<-ch
+		inFlight.Lock()
+		if inFlight.path != "" {
+			os.Remove(inFlight.path)
+		}
+		inFlight.Unlock()
+		os.Exit(1)
+	}()
+}
+
+// writeFile replaces path with data, writing to a temporary file in the same
+// directory and renaming it into place. A write that dies partway through, on
+// a full disk or an interrupted filesystem, then leaves the previous file
+// untouched rather than truncated.
+//
+// A destination that is not a regular file, such as /dev/null or a symlink
+// meant to be written through, is written directly: renaming over one of
+// those would replace the thing itself rather than its contents.
+func writeFile(path string, data []byte) error {
+	perm := os.FileMode(0o644)
+	if fi, err := os.Lstat(path); err == nil {
+		if !fi.Mode().IsRegular() {
+			return os.WriteFile(path, data, perm)
+		}
+		perm = fi.Mode().Perm() // keep whatever mode the file already had
+	}
+
+	f, err := os.CreateTemp(filepath.Dir(path), "."+filepath.Base(path)+".tmp")
+	if err != nil {
+		return err
+	}
+	tmp := f.Name()
+	inFlight.Lock()
+	inFlight.path = tmp
+	inFlight.Unlock()
+	defer func() {
+		os.Remove(tmp) // does nothing once the rename below has succeeded
+		inFlight.Lock()
+		inFlight.path = ""
+		inFlight.Unlock()
+	}()
+
+	if _, err := f.Write(data); err != nil {
+		f.Close()
+		return err
+	}
+	// Reach the disk before the rename, so a crash cannot leave an empty file
+	// sitting at the destination.
+	if err := f.Sync(); err != nil {
+		f.Close()
+		return err
+	}
+	if err := f.Close(); err != nil {
+		return err
+	}
+	if err := os.Chmod(tmp, perm); err != nil {
+		return err
+	}
+	return os.Rename(tmp, path)
 }
 
 // parseInterspersed parses flags that appear before or after positional

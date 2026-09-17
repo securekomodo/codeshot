@@ -197,3 +197,110 @@ func TestVersionShowsAuthor(t *testing.T) {
 		t.Errorf("--version output:\n%s", out.String())
 	}
 }
+
+// assertNoTempFiles fails if a write left a temporary file beside the output.
+func assertNoTempFiles(t *testing.T, dir string) {
+	t.Helper()
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, e := range entries {
+		if strings.Contains(e.Name(), ".tmp") {
+			t.Errorf("temporary file left behind: %s", e.Name())
+		}
+	}
+}
+
+func TestWriteFileReplacesInPlace(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "out.png")
+
+	if err := writeFile(path, []byte("first")); err != nil {
+		t.Fatal(err)
+	}
+	fi, err := os.Stat(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if fi.Mode().Perm() != 0o644 {
+		t.Errorf("new file mode = %v, want 0644", fi.Mode().Perm())
+	}
+
+	// Replacing a file keeps the mode it already had, which is what writing
+	// straight to it used to do.
+	if err := os.Chmod(path, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := writeFile(path, []byte("second")); err != nil {
+		t.Fatal(err)
+	}
+	if fi, err = os.Stat(path); err != nil {
+		t.Fatal(err)
+	} else if fi.Mode().Perm() != 0o600 {
+		t.Errorf("mode after replacing = %v, want the 0600 it already had", fi.Mode().Perm())
+	}
+	if b, _ := os.ReadFile(path); string(b) != "second" {
+		t.Errorf("content = %q, want %q", b, "second")
+	}
+
+	assertNoTempFiles(t, dir)
+	inFlight.Lock()
+	stray := inFlight.path
+	inFlight.Unlock()
+	if stray != "" {
+		t.Errorf("a temp file is still recorded as in flight: %q", stray)
+	}
+}
+
+// The whole point of the change: a write that fails must not damage whatever
+// was at the destination already.
+func TestWriteFileKeepsTheOldFileWhenTheWriteFails(t *testing.T) {
+	if os.Geteuid() == 0 {
+		t.Skip("root ignores the directory permissions this relies on")
+	}
+	dir := t.TempDir()
+	path := filepath.Join(dir, "out.png")
+	if err := writeFile(path, []byte("the good image")); err != nil {
+		t.Fatal(err)
+	}
+
+	// A read-only directory stops the temporary file being created at all.
+	if err := os.Chmod(dir, 0o500); err != nil {
+		t.Fatal(err)
+	}
+	defer os.Chmod(dir, 0o700)
+
+	if err := writeFile(path, []byte("this must not land")); err == nil {
+		t.Fatal("writing into a read-only directory should fail")
+	}
+	if b, _ := os.ReadFile(path); string(b) != "the good image" {
+		t.Errorf("the previous file was damaged: %q", b)
+	}
+}
+
+// Renaming over a device would replace the device, so those are written through.
+func TestWriteFileWritesThroughNonRegularFiles(t *testing.T) {
+	if err := writeFile(os.DevNull, []byte("discarded")); err != nil {
+		t.Errorf("%s should still be writable: %v", os.DevNull, err)
+	}
+}
+
+func TestRenderTwiceOverTheSamePath(t *testing.T) {
+	dir := t.TempDir()
+	out := filepath.Join(dir, "shot.svg")
+	var stdout bytes.Buffer
+	for i := 1; i <= 2; i++ {
+		if err := run([]string{"--sample", "-o", out}, strings.NewReader(""), &stdout); err != nil {
+			t.Fatalf("render %d: %v", i, err)
+		}
+		svg, err := os.ReadFile(out)
+		if err != nil {
+			t.Fatalf("render %d: %v", i, err)
+		}
+		if !strings.HasPrefix(string(svg), "<svg") || !strings.HasSuffix(strings.TrimSpace(string(svg)), "</svg>") {
+			t.Fatalf("render %d produced an incomplete SVG", i)
+		}
+	}
+	assertNoTempFiles(t, dir)
+}
